@@ -167,8 +167,11 @@ public:
         const float waveC = std::clamp(fParams.oscCWave + waveModOffset, 0.0f, 1.0f);
         // three oscillator groups summed - equal-power normalized like the
         // unison stack within each, so dialing in B/C doesn't jump the
-        // overall level the way a plain 3x sum would
-        const float ampGain = (0.25f + 0.75f * fVelocity) * env * (1.0f / std::sqrt(3.0f));
+        // overall level the way a plain 3x sum would. Velocity floor raised
+        // from the original 0.25 to 0.4 (still reaching the same 1.0 at
+        // full velocity) so anything short of hitting it hard doesn't come
+        // out disproportionately quiet.
+        const float ampGain = (0.4f + 0.6f * fVelocity) * env * (1.0f / std::sqrt(3.0f));
 
         // FM: each group's phase offset this sample is built from the
         // OTHER two groups' PREVIOUS-sample raw output (fPrevA/B/C, one

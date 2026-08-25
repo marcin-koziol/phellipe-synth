@@ -312,7 +312,7 @@ inline const ParamInfo& getParamInfo(uint32_t index) noexcept
         { "Size",       "space_size",  "",   0.0f,     1.0f,     0.5f,   ParamShape::Linear },
         { "Decay",      "space_decay", "",   0.0f,     1.0f,     0.5f,   ParamShape::Linear },
         { "Mix",        "space_mix",   "",   0.0f,     1.0f,     0.3f,   ParamShape::Linear },
-        { "Volume",     "volume",      "",   0.0f,     1.0f,     0.8f,   ParamShape::Linear },
+        { "Volume",     "volume",      "",   0.0f,     1.0f,    0.92f,   ParamShape::Linear },
         { "Width",      "width",       "",   0.0f,     1.0f,    0.75f,   ParamShape::Linear },
         { "Amp Attack",   "amp_attack",     "s", 0.001f, 5.0f, 0.4f,  ParamShape::Logarithmic },
         { "Amp Decay",    "amp_decay",      "s", 0.001f, 5.0f, 0.3f,  ParamShape::Logarithmic },

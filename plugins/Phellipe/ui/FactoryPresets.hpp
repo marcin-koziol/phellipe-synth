@@ -269,6 +269,66 @@ inline const std::vector<FactoryPreset>& factoryPresets()
             { "chorus_rate", 0.2f }, { "chorus_depth", 0.2f }, { "chorus_mix", 0.15f },
             { "fm_b_to_c", 0.5f },
         }},
+
+        // B and C mutually FM each other (light, both directions) while A
+        // stays a clean sine root underneath - an inharmonic, faintly
+        // metallic shimmer riding on top of a stable fundamental, all three
+        // audible at once (unlike Hidden Operator's muted modulator).
+        { "Bell Choir", {
+            { "voices", 3.0f }, { "detune", 6.0f }, { "spread", 0.6f }, { "wave", 0.0f },
+            { "osc_b_octave", 1.0f }, { "osc_b_wave", 0.15f },
+            { "osc_c_octave", 1.0f }, { "osc_c_semi", 7.0f }, { "osc_c_wave", 0.15f },
+            { "osc_b_level", 0.5f }, { "osc_c_level", 0.5f },
+            { "cutoff", 3200.0f }, { "resonance", 0.15f }, { "drive", 0.0f },
+            { "drift_rate", 0.05f }, { "drift_depth", 0.15f }, { "drift_chaos", 0.1f },
+            { "noise", 0.02f }, { "grain", 0.0f }, { "age", 0.0f },
+            { "space_size", 0.7f }, { "space_decay", 0.65f }, { "space_mix", 0.4f },
+            { "volume", 0.7f }, { "width", 0.85f },
+            { "amp_attack", 0.8f }, { "amp_decay", 0.3f }, { "amp_sustain", 1.0f }, { "amp_release", 1.5f },
+            { "delay_time", 400.0f }, { "delay_feedback", 0.25f }, { "delay_mix", 0.2f },
+            { "chorus_rate", 0.15f }, { "chorus_depth", 0.25f }, { "chorus_mix", 0.2f },
+            { "fm_b_to_c", 0.25f }, { "fm_c_to_b", 0.2f },
+        }},
+
+        // the full cyclic A->B->C->A matrix all at once - the same routing
+        // the offline smoke test uses to prove it's stable regardless of
+        // topology. Chaotic, ever-mutating, never quite settling, but never
+        // runs away either.
+        { "Feedback Drone", {
+            { "voices", 2.0f }, { "detune", 10.0f }, { "spread", 0.5f }, { "wave", 0.2f },
+            { "osc_b_semi", 5.0f }, { "osc_c_semi", -5.0f },
+            { "cutoff", 1600.0f }, { "resonance", 0.35f }, { "drive", 0.1f },
+            { "drift_rate", 0.09f }, { "drift_depth", 0.2f }, { "drift_chaos", 0.25f },
+            { "noise", 0.03f }, { "grain", 0.05f }, { "age", 0.05f },
+            { "space_size", 0.5f }, { "space_decay", 0.5f }, { "space_mix", 0.28f },
+            { "volume", 0.65f }, { "width", 0.6f },
+            { "amp_attack", 0.5f }, { "amp_decay", 0.3f }, { "amp_sustain", 1.0f }, { "amp_release", 1.0f },
+            { "delay_time", 280.0f }, { "delay_feedback", 0.35f }, { "delay_mix", 0.2f },
+            { "chorus_rate", 0.3f }, { "chorus_depth", 0.3f }, { "chorus_mix", 0.2f },
+            { "fm_a_to_b", 0.35f }, { "fm_b_to_c", 0.35f }, { "fm_c_to_a", 0.35f },
+        }},
+
+        // LFO patched into FILTER CUTOFF sweeps the tone while FM (B->A,
+        // fixed amount) keeps a constant metallic edge under the sweep -
+        // showcases the existing macro patch matrix and the new FM matrix
+        // working together rather than as separate systems.
+        { "Sideband Sweep", {
+            { "voices", 3.0f }, { "detune", 9.0f }, { "spread", 0.5f }, { "wave", 0.3f },
+            { "osc_b_octave", -1.0f }, { "osc_b_wave", 0.1f },
+            { "osc_c_semi", 7.0f },
+            { "osc_b_level", 0.7f },
+            { "cutoff", 900.0f }, { "resonance", 0.25f }, { "drive", 0.05f },
+            { "drift_rate", 0.08f }, { "drift_depth", 0.2f }, { "drift_chaos", 0.15f },
+            { "noise", 0.03f }, { "grain", 0.0f }, { "age", 0.05f },
+            { "space_size", 0.55f }, { "space_decay", 0.55f }, { "space_mix", 0.3f },
+            { "volume", 0.7f }, { "width", 0.7f },
+            { "amp_attack", 0.5f }, { "amp_decay", 0.3f }, { "amp_sustain", 1.0f }, { "amp_release", 1.0f },
+            { "delay_time", 320.0f }, { "delay_feedback", 0.25f }, { "delay_mix", 0.2f },
+            { "chorus_rate", 0.2f }, { "chorus_depth", 0.2f }, { "chorus_mix", 0.15f },
+            { "lfo_rate", 0.15f }, { "lfo_amount", 0.6f },
+            { "patch_lfo_cutoff", 1.0f },
+            { "fm_b_to_a", 0.3f },
+        }},
     };
     return presets;
 }

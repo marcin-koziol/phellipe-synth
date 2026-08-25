@@ -63,7 +63,7 @@ static constexpr const float kNoiseModRange = 0.6f;        // added to base NOIS
 // well past 0dBFS and slam the final safety tanh into audible hard clipping;
 // pull the mix down before any of that, same reasoning as Sideous's own
 // kVoiceHeadroom.
-static constexpr const float kVoiceHeadroom = 0.45f;
+static constexpr const float kVoiceHeadroom = 0.62f;
 
 // retro pixel scope: 32 samples of the final mixed output, captured one at
 // a time at a fixed decimation so a full buffer is one "sweep" - see
@@ -712,7 +712,7 @@ private:
     float fSpaceDecay = 0.5f;
     float fSpaceMix = 0.3f;
 
-    float fVolume = 0.8f;
+    float fVolume = 0.92f;
     float fWidth = 0.75f;
 
     Filter fFilterL, fFilterR;

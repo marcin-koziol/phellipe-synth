@@ -37,7 +37,7 @@ enum Dest { DestPitch = 0, DestCutoff, DestWave, DestDelayTime, DestChorusRate, 
             DestNoise, kNumDests };
 
 static constexpr uint32_t kNumVoices = DriftGenerator::kMaxVoices;
-static constexpr float kVoiceHeadroom = 0.45f; // mirrors PhellipePlugin.cpp
+static constexpr float kVoiceHeadroom = 0.62f; // mirrors PhellipePlugin.cpp
 
 static constexpr float kModSumClamp = 2.0f;
 static constexpr float kPitchModSemitones = 12.0f;
@@ -189,7 +189,7 @@ static bool renderScenario(const char* label, const char* wavPath, bool patch[kN
     reverb.setSampleRate(kSampleRate);
     const float spaceSize = 0.5f, spaceDecay = 0.5f, spaceMix = 0.3f;
 
-    const float volume = 0.8f, width = 0.75f;
+    const float volume = 0.92f, width = 0.75f;
 
     const uint32_t totalFrames = (uint32_t)(kSeconds * kSampleRate);
     std::vector<float> outL(totalFrames), outR(totalFrames);

@@ -187,7 +187,7 @@ inline const std::vector<CellContent>& cellContents()
         // "modwheel" now lives in the polygon that used to be "output" (see
         // the comment above the "output" entry) - a much roomier quad, so
         // both rows get a bigger radius/spacing than the old cramped home.
-        { "modwheel",  "MOD WHEEL", "MIDI CC1",           15.0f,   0.0f, -20.0f, 13.0f,  50.0f, 70.0f, 0.0f,
+        { "modwheel",  "MOD WHEEL", "MIDI CC1",           15.0f,  25.0f, -20.0f, 13.0f,  50.0f, 70.0f, 0.0f,
           {
               { nullptr,     { { kParamModWheelAmount, "AMOUNT" } } },
               { "VELOCITY",  { { kParamVelocityAmount, "AMOUNT" } } },
@@ -749,7 +749,7 @@ inline void paintPortraitCell(cairo_t* cr, const VoronoiCellGeo& cell)
     // polygon.
     const double scale = std::max((double)b.w / imgW, (double)b.h / imgH) * 0.7;
     const double drawW = imgW * scale, drawH = imgH * scale;
-    const double offX = b.x + (b.w - drawW) * 0.5;
+    const double offX = b.x + (b.w - drawW) * 0.5 + 30.0; // nudged right to sit better in the cell
     const double offY = b.y + (b.h - drawH) * 0.5; // source image is already just the eye, roughly centered in its own frame
 
     cairo_translate(cr, offX, offY);

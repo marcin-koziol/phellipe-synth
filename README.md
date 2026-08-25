@@ -1,5 +1,7 @@
 # Phellipe
 
+![build](https://github.com/marcin-koziol/phellipe-synth/actions/workflows/build.yml/badge.svg)
+
 An 8-voice polyphonic drone synth: three independently-tunable unison
 oscillator stacks (each its own sine-to-saw WAVE blend and its own output
 LEVEL, so any group can be muted from the mix while still modulating the

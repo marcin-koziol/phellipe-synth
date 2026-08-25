@@ -34,7 +34,7 @@ using namespace phellipe;
 enum Src { SrcDrift = 0, SrcAmpEnv, SrcFilterEnv, SrcLfo, SrcModWheel, SrcPitchBend, SrcVelocity, SrcAftertouch, kNumSources };
 enum Dest { DestPitch = 0, DestCutoff, DestWave, DestDelayTime, DestChorusRate, DestLfoRate, DestAge,
             DestOscBFree, DestOscCFree, DestResonance, DestDrive, DestChorusDepth, DestSpaceSize, DestDelayMix,
-            DestNoise, kNumDests };
+            DestNoise, DestFmAtoB, DestFmAtoC, DestFmBtoA, DestFmBtoC, DestFmCtoA, DestFmCtoB, kNumDests };
 
 static constexpr uint32_t kNumVoices = DriftGenerator::kMaxVoices;
 static constexpr float kVoiceHeadroom = 0.62f; // mirrors PhellipePlugin.cpp
@@ -54,6 +54,7 @@ static constexpr float kChorusDepthModRange = 0.5f;
 static constexpr float kSpaceSizeModRange = 0.5f;
 static constexpr float kDelayMixModRange = 0.5f;
 static constexpr float kNoiseModRange = 0.6f;
+static constexpr float kFmModRange = 0.7f;
 
 static constexpr double kSampleRate = 44100.0;
 static constexpr double kSeconds = 3.0;
@@ -254,6 +255,11 @@ static bool renderScenario(const char* label, const char* wavPath, bool patch[kN
         const float waveModOffset = sumFor[DestWave] * kWaveModRange;
         const float oscBFreeModCents = sumFor[DestOscBFree] * kFreeModCents;
         const float oscCFreeModCents = sumFor[DestOscCFree] * kFreeModCents;
+        const float fmMod[6] = {
+            sumFor[DestFmAtoB] * kFmModRange, sumFor[DestFmAtoC] * kFmModRange,
+            sumFor[DestFmBtoA] * kFmModRange, sumFor[DestFmBtoC] * kFmModRange,
+            sumFor[DestFmCtoA] * kFmModRange, sumFor[DestFmCtoB] * kFmModRange,
+        };
 
         float mixL = 0.0f, mixR = 0.0f;
         bool anyVoiceActive = false;
@@ -264,7 +270,7 @@ static bool renderScenario(const char* label, const char* wavPath, bool patch[kN
                 continue;
             anyVoiceActive = true;
             ++activeVoiceCount;
-            voices[v].process(pitchModSemitones, waveModOffset, oscBFreeModCents, oscCFreeModCents, mixL, mixR);
+            voices[v].process(pitchModSemitones, waveModOffset, oscBFreeModCents, oscCFreeModCents, fmMod, mixL, mixR);
         }
         const float headroom = std::clamp(1.0f / std::sqrt(std::max(1.0f, (float)activeVoiceCount)), kVoiceHeadroom, 1.0f);
         mixL *= headroom;
@@ -470,6 +476,22 @@ int main()
                                  /*oscALevel=*/1.0f, /*oscBLevel=*/1.0f, /*oscCLevel=*/1.0f,
                                  /*fmAtoB=*/0.6f, /*fmAtoC=*/0.0f, /*fmBtoA=*/0.0f,
                                  /*fmBtoC=*/0.6f, /*fmCtoA=*/0.6f, /*fmCtoB=*/0.0f);
+    }
+
+    // 12) LFO patched directly into FM B->C amount (starting from a 0 base)
+    // - the new "FM as a real patch destination" feature: an envelope/LFO
+    // sweeping FM depth over time rather than it only ever being a fixed
+    // knob value.
+    {
+        bool patch[kNumSources][kNumDests] = {};
+        patch[SrcLfo][DestFmBtoC] = true;
+        allOk &= renderScenario("lfo->fm b->c", "/tmp/phellipe_offline_fm_patched.wav",
+                                 patch, /*delaySync=*/0, /*modWheelValue=*/0.0f, /*pitchBendValue=*/0.0f,
+                                 /*velocityValue=*/0.9f, /*aftertouchValue=*/0.0f,
+                                 /*oscBWave=*/0.3f, /*oscCWave=*/0.3f,
+                                 /*oscALevel=*/1.0f, /*oscBLevel=*/1.0f, /*oscCLevel=*/1.0f,
+                                 /*fmAtoB=*/0.0f, /*fmAtoC=*/0.0f, /*fmBtoA=*/0.0f,
+                                 /*fmBtoC=*/0.0f, /*fmCtoA=*/0.0f, /*fmCtoB=*/0.0f);
     }
 
     return allOk ? 0 : 1;

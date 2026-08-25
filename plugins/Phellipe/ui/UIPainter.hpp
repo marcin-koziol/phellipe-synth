@@ -74,7 +74,8 @@ enum PatchSrc { PatchSrcDrift = 0, PatchSrcAmpEnv, PatchSrcFilterEnv, PatchSrcLf
                 PatchSrcVelocity, PatchSrcAftertouch, kPatchNumSources };
 enum PatchDest { PatchDestPitch = 0, PatchDestCutoff, PatchDestWave, PatchDestDelayTime, PatchDestChorusRate, PatchDestLfoRate, PatchDestAge,
                  PatchDestOscBFree, PatchDestOscCFree, PatchDestResonance, PatchDestDrive, PatchDestChorusDepth, PatchDestSpaceSize,
-                 PatchDestDelayMix, PatchDestNoise, kPatchNumDests };
+                 PatchDestDelayMix, PatchDestNoise, PatchDestFmAtoB, PatchDestFmAtoC, PatchDestFmBtoA, PatchDestFmBtoC,
+                 PatchDestFmCtoA, PatchDestFmCtoB, kPatchNumDests };
 
 static constexpr float kJackRadius = 7.0f;
 
@@ -357,6 +358,16 @@ inline Layout buildLayout(float width, float height)
             L.knobs.push_back({ kParamFmBtoC, fmCol2, rowBY, fmRadius, "B>C", kAccent });
             L.knobs.push_back({ kParamFmCtoA, fmCol1, rowCY, fmRadius, "C>A", kAccent });
             L.knobs.push_back({ kParamFmCtoB, fmCol2, rowCY, fmRadius, "C>B", kAccent });
+
+            // FM amounts are patchable destinations too now - one jack above
+            // each of the 6 knobs above.
+            const float fmJackDy = fmRadius + 14.0f;
+            L.destJacks[PatchDestFmAtoB] = { fmCol1, rowAY - fmJackDy, PatchDestFmAtoB };
+            L.destJacks[PatchDestFmAtoC] = { fmCol2, rowAY - fmJackDy, PatchDestFmAtoC };
+            L.destJacks[PatchDestFmBtoA] = { fmCol1, rowBY - fmJackDy, PatchDestFmBtoA };
+            L.destJacks[PatchDestFmBtoC] = { fmCol2, rowBY - fmJackDy, PatchDestFmBtoC };
+            L.destJacks[PatchDestFmCtoA] = { fmCol1, rowCY - fmJackDy, PatchDestFmCtoA };
+            L.destJacks[PatchDestFmCtoB] = { fmCol2, rowCY - fmJackDy, PatchDestFmCtoB };
         }
         else if (std::strcmp(cell.label, "resonator") == 0)
         {

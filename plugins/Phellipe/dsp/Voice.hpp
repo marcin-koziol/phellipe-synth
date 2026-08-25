@@ -142,10 +142,13 @@ public:
     // clamping, so a single WAVE patch connection sweeps all three groups in
     // lockstep without erasing their individually-dialed-in tone; the two
     // free-tune mods each apply only to their own group (B or C), added on
-    // top of that group's own FREE knob value. outL/outR are added into, not
-    // overwritten, so the caller can sum voices directly.
+    // top of that group's own FREE knob value. fmMod[6] (AtoB, AtoC, BtoA,
+    // BtoC, CtoA, CtoB, matching PhellipePlugin.cpp's Dest enum order) are
+    // added to the matching fParams.fmXtoY base amount before clamping, same
+    // pattern as the wave/free-tune offsets above. outL/outR are added into,
+    // not overwritten, so the caller can sum voices directly.
     void process(float pitchModSemitones, float waveModOffset, float oscBFreeModCents, float oscCFreeModCents,
-                 float& outL, float& outR) noexcept
+                 const float* fmMod, float& outL, float& outR) noexcept
     {
         if (!fActive)
             return;
@@ -173,6 +176,13 @@ public:
         // out disproportionately quiet.
         const float ampGain = (0.4f + 0.6f * fVelocity) * env * (1.0f / std::sqrt(3.0f));
 
+        const float fmAtoB = std::clamp(fParams.fmAtoB + fmMod[0], 0.0f, 1.0f);
+        const float fmAtoC = std::clamp(fParams.fmAtoC + fmMod[1], 0.0f, 1.0f);
+        const float fmBtoA = std::clamp(fParams.fmBtoA + fmMod[2], 0.0f, 1.0f);
+        const float fmBtoC = std::clamp(fParams.fmBtoC + fmMod[3], 0.0f, 1.0f);
+        const float fmCtoA = std::clamp(fParams.fmCtoA + fmMod[4], 0.0f, 1.0f);
+        const float fmCtoB = std::clamp(fParams.fmCtoB + fmMod[5], 0.0f, 1.0f);
+
         // FM: each group's phase offset this sample is built from the
         // OTHER two groups' PREVIOUS-sample raw output (fPrevA/B/C, one
         // unison voice at a time) rather than this sample's - the same
@@ -185,9 +195,9 @@ public:
         float fmPhaseA[kMaxUnison], fmPhaseB[kMaxUnison], fmPhaseC[kMaxUnison];
         for (uint32_t i = 0; i < kMaxUnison; ++i)
         {
-            fmPhaseA[i] = (fParams.fmBtoA * fPrevB[i] + fParams.fmCtoA * fPrevC[i]) * kFMIndexRange;
-            fmPhaseB[i] = (fParams.fmAtoB * fPrevA[i] + fParams.fmCtoB * fPrevC[i]) * kFMIndexRange;
-            fmPhaseC[i] = (fParams.fmAtoC * fPrevA[i] + fParams.fmBtoC * fPrevB[i]) * kFMIndexRange;
+            fmPhaseA[i] = (fmBtoA * fPrevB[i] + fmCtoA * fPrevC[i]) * kFMIndexRange;
+            fmPhaseB[i] = (fmAtoB * fPrevA[i] + fmCtoB * fPrevC[i]) * kFMIndexRange;
+            fmPhaseC[i] = (fmAtoC * fPrevA[i] + fmBtoC * fPrevB[i]) * kFMIndexRange;
         }
 
         float mixL = 0.0f, mixR = 0.0f;

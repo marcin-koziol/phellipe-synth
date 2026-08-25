@@ -4,9 +4,11 @@
  * chorus, tempo-syncable delay, and reverb (SPACE). Eight modulation sources
  * - DRIFT, AMP ENV, FILTER ENV, LFO, MOD WHEEL, PITCH BEND, VELOCITY,
  * AFTERTOUCH - can each be patched (semi-modular style, via the UI's patch
- * cables) into any of nine destinations: CORE pitch, CORE wave blend,
- * RESONATOR cutoff, DELAY time, CHORUS rate, the LFO's own rate, GRAIN age,
- * and OSC B/C's FREE fine-tune. No arpeggiator, mono mode, or portamento.
+ * cables) into any of 21 destinations: CORE pitch/wave blend/either
+ * sub-oscillator's FREE fine-tune, RESONATOR cutoff/resonance/drive, DELAY
+ * time/mix, CHORUS rate/depth, the LFO's own rate, GRAIN age/noise, SPACE
+ * size, or any of the six directions in OSC A/B/C's own FM matrix (see
+ * dsp/Voice.hpp). No arpeggiator, mono mode, or portamento.
  */
 
 #include "DistrhoPlugin.hpp"
@@ -32,12 +34,12 @@ using namespace phellipe;
 
 static constexpr const uint32_t kNumVoices = phellipe::DriftGenerator::kMaxVoices; // 8
 
-// the patch matrix: 8 sources x 15 destinations. Order here must match the
+// the patch matrix: 8 sources x 21 destinations. Order here must match the
 // source-major kParamPatch* block in Params.hpp exactly.
 enum Src { SrcDrift = 0, SrcAmpEnv, SrcFilterEnv, SrcLfo, SrcModWheel, SrcPitchBend, SrcVelocity, SrcAftertouch, kNumSources };
 enum Dest { DestPitch = 0, DestCutoff, DestWave, DestDelayTime, DestChorusRate, DestLfoRate, DestAge,
             DestOscBFree, DestOscCFree, DestResonance, DestDrive, DestChorusDepth, DestSpaceSize, DestDelayMix,
-            DestNoise, kNumDests };
+            DestNoise, DestFmAtoB, DestFmAtoC, DestFmBtoA, DestFmBtoC, DestFmCtoA, DestFmCtoB, kNumDests };
 
 // modulation range constants: how far a destination moves at a clamped,
 // fully-summed modulation value of +-1 (multiple patched sources can stack
@@ -57,6 +59,7 @@ static constexpr const float kChorusDepthModRange = 0.5f;  // added to base CHOR
 static constexpr const float kSpaceSizeModRange = 0.5f;    // added to base SPACE SIZE (0..1), then clamped 0..1
 static constexpr const float kDelayMixModRange = 0.5f;     // added to base DELAY MIX (0..1), then clamped 0..1
 static constexpr const float kNoiseModRange = 0.6f;        // added to base NOISE (0..1), then clamped 0..1
+static constexpr const float kFmModRange = 0.7f;           // added to base FM amount (0..1), then clamped 0..1
 
 // several simultaneously-held chord voices (each already unison-normalized
 // internally) plus a resonant filter and reverb wet signal can otherwise sum
@@ -105,8 +108,9 @@ protected:
                "AFTERTOUCH can each be patched into pitch, wave blend, filter cutoff, "
                "resonance, drive, a tempo-syncable delay time, chorus rate or depth, "
                "the LFO's own rate, grain age or noise level, reverb size, delay mix, "
-               "or either sub-oscillator's fine-tune. OSC A/B/C each have their own "
-               "sine-to-saw WAVE blend.";
+               "either sub-oscillator's fine-tune, or any direction of OSC A/B/C's own "
+               "FM matrix. OSC A/B/C each have their own sine-to-saw WAVE blend and "
+               "output level.";
     }
     const char* getMaker() const override { return "Phellipe"; }
     const char* getHomePage() const override { return DISTRHO_PLUGIN_URI; }
@@ -440,6 +444,13 @@ protected:
             const float waveModOffset = sumFor[DestWave] * kWaveModRange;
             const float oscBFreeModCents = sumFor[DestOscBFree] * kFreeModCents;
             const float oscCFreeModCents = sumFor[DestOscCFree] * kFreeModCents;
+            // FM matrix offsets, order matching Voice::process()'s fmMod[6]
+            // comment (AtoB, AtoC, BtoA, BtoC, CtoA, CtoB)
+            const float fmMod[6] = {
+                sumFor[DestFmAtoB] * kFmModRange, sumFor[DestFmAtoC] * kFmModRange,
+                sumFor[DestFmBtoA] * kFmModRange, sumFor[DestFmBtoC] * kFmModRange,
+                sumFor[DestFmCtoA] * kFmModRange, sumFor[DestFmCtoB] * kFmModRange,
+            };
 
             float mixL = 0.0f, mixR = 0.0f;
             bool anyVoiceActive = false;
@@ -450,7 +461,7 @@ protected:
                     continue;
                 anyVoiceActive = true;
                 ++activeVoiceCount;
-                fVoices[v].process(pitchModSemitones, waveModOffset, oscBFreeModCents, oscCFreeModCents, mixL, mixR);
+                fVoices[v].process(pitchModSemitones, waveModOffset, oscBFreeModCents, oscCFreeModCents, fmMod, mixL, mixR);
             }
             // headroom scales with how many voices are actually stacked up
             // this sample - equal-power (1/sqrt(n)) down to kVoiceHeadroom's
@@ -693,14 +704,14 @@ private:
     // env -> cutoff) plus standard synth behavior for pitch bend (-> pitch),
     // so it "just works" the way a normal pitch wheel would, out of the box.
     bool fPatch[kNumSources][kNumDests] = {
-        /* Drift      */ { false, true,  false, false, false, false, false, false, false, false, false, false, false, false, false },
-        /* AmpEnv     */ { false, false, false, false, false, false, false, false, false, false, false, false, false, false, false },
-        /* FilterEnv  */ { false, true,  false, false, false, false, false, false, false, false, false, false, false, false, false },
-        /* Lfo        */ { false, false, false, false, false, false, false, false, false, false, false, false, false, false, false },
-        /* ModWheel   */ { false, false, false, false, false, false, false, false, false, false, false, false, false, false, false },
-        /* PitchBend  */ { true,  false, false, false, false, false, false, false, false, false, false, false, false, false, false },
-        /* Velocity   */ { false, false, false, false, false, false, false, false, false, false, false, false, false, false, false },
-        /* Aftertouch */ { false, false, false, false, false, false, false, false, false, false, false, false, false, false, false },
+        /* Drift      */ { false, true,  false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false },
+        /* AmpEnv     */ { false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false },
+        /* FilterEnv  */ { false, true,  false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false },
+        /* Lfo        */ { false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false },
+        /* ModWheel   */ { false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false },
+        /* PitchBend  */ { true,  false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false },
+        /* Velocity   */ { false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false },
+        /* Aftertouch */ { false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false },
     };
 
     float fNoise = 0.0f;

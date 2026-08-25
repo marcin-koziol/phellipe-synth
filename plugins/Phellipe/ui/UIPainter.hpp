@@ -154,13 +154,13 @@ struct CellContent
 inline const std::vector<CellContent>& cellContents()
 {
     static const std::vector<CellContent> contents = {
-        { "core",      "CORE",      "OSCILLATOR STACK", 21.0f,  6.0f, -75.0f, 14.0f, 170.0f, 84.0f, 15.0f,
+        { "core",      "CORE",      "OSCILLATOR STACK", 21.0f,  6.0f, -90.0f, 14.0f, 170.0f, 84.0f, 15.0f,
           {
               { nullptr, { { kParamVoices, "VOICES" }, { kParamDetune, "DETUNE" }, { kParamSpread, "SPREAD" }, { kParamOscALevel, "LEVEL" }, { kParamWave, "WAVE" } } },
               { "OSC B", { { kParamOscBOctave, "OCT" }, { kParamOscBSemi, "SEMI" }, { kParamOscBWave, "WAVE" }, { kParamOscBLevel, "LEVEL" }, { kParamOscBFree, "FREE" } } },
               { "OSC C", { { kParamOscCOctave, "OCT" }, { kParamOscCSemi, "SEMI" }, { kParamOscCWave, "WAVE" }, { kParamOscCLevel, "LEVEL" }, { kParamOscCFree, "FREE" } } },
           } },
-        { "resonator", "RESONATOR", "FILTER + BODY",     21.0f,  10.0f,  10.0f, 18.0f, 175.0f, 0.0f, 0.0f,
+        { "resonator", "RESONATOR", "FILTER + BODY",     21.0f,  10.0f,  -8.0f, 18.0f, 215.0f, 0.0f, 0.0f,
           { { nullptr, { { kParamCutoff, "CUTOFF" }, { kParamResonance, "RESO" }, { kParamDrive, "DRIVE" } } } } },
         { "drift",     "DRIFT",     "SLOW MODULATION",   19.0f,  -8.0f,   4.0f, 17.0f, 160.0f, 0.0f, 0.0f,
           { { nullptr, { { kParamDriftRate, "RATE" }, { kParamDriftDepth, "DEPTH" }, { kParamDriftChaos, "CHAOS" } } } } },
@@ -168,9 +168,13 @@ inline const std::vector<CellContent>& cellContents()
           { { nullptr, { { kParamNoise, "NOISE" }, { kParamGrain, "GRAIN" }, { kParamAge, "AGE" } } } } },
         { "space",     "SPACE",     "REVERB",             19.0f,   6.0f,  10.0f, 17.0f, 160.0f, 0.0f, 0.0f,
           { { nullptr, { { kParamSpaceSize, "SIZE" }, { kParamSpaceDecay, "DECAY" }, { kParamSpaceMix, "MIX" } } } } },
-        { "output",    "OUTPUT",    "MASTER",            18.0f,   2.0f,  26.0f, 19.0f, 110.0f, 0.0f, 0.0f,
+        // "output" now lives in the small polygon that used to be FillF
+        // (unlabeled filler) - swapped with "modwheel" below since MOD
+        // WHEEL's two source rows didn't fit its old cramped triangle-ish
+        // home but fit easily in OUTPUT's old, more generous one.
+        { "output",    "OUTPUT",    "MASTER",            16.0f,   0.0f,   0.0f, 14.0f,  95.0f, 0.0f, 0.0f,
           { { nullptr, { { kParamVolume, "VOLUME" }, { kParamWidth, "WIDTH" } } } } },
-        { "ampenv",    "AMP ENV",   "SWELL SHAPE",       19.0f,   0.0f,   0.0f, 16.0f, 190.0f, 0.0f, 0.0f,
+        { "ampenv",    "AMP ENV",   "SWELL SHAPE",       19.0f,   0.0f, -40.0f, 16.0f, 190.0f, 0.0f, 0.0f,
           { { nullptr, { { kParamAmpAttack, "ATTACK" }, { kParamAmpDecay, "DECAY" }, { kParamAmpSustain, "SUSTAIN" }, { kParamAmpRelease, "RELEASE" } } } } },
         { "filterenv", "FILTER ENV","CUTOFF ENVELOPE",   19.0f,   0.0f,   0.0f, 15.0f, 180.0f, 0.0f, 0.0f,
           { { nullptr, { { kParamFilterAttack, "ATTACK" }, { kParamFilterDecay, "DECAY" }, { kParamFilterSustain, "SUSTAIN" }, { kParamFilterRelease, "RELEASE" } } } } },
@@ -180,7 +184,10 @@ inline const std::vector<CellContent>& cellContents()
           { { nullptr, { { kParamChorusRate, "RATE" }, { kParamChorusDepth, "DEPTH" }, { kParamChorusMix, "MIX" } } } } },
         { "lfo",       "LFO",       "SINE, SLOW MOD",     16.0f,   0.0f,   0.0f, 13.0f,  50.0f, 0.0f, 0.0f,
           { { nullptr, { { kParamLfoRate, "RATE" } } } } },
-        { "modwheel",  "MOD WHEEL", "MIDI CC1",           14.0f,   0.0f, -40.0f, 11.0f,  40.0f, 75.0f, 0.0f,
+        // "modwheel" now lives in the polygon that used to be "output" (see
+        // the comment above the "output" entry) - a much roomier quad, so
+        // both rows get a bigger radius/spacing than the old cramped home.
+        { "modwheel",  "MOD WHEEL", "MIDI CC1",           15.0f,   0.0f, -20.0f, 13.0f,  50.0f, 70.0f, 0.0f,
           {
               { nullptr,     { { kParamModWheelAmount, "AMOUNT" } } },
               { "VELOCITY",  { { kParamVelocityAmount, "AMOUNT" } } },
@@ -191,7 +198,7 @@ inline const std::vector<CellContent>& cellContents()
         // The triangle widens toward its right vertex (y~347 locally), which
         // is exactly where the second row sits, so both rows have plenty of
         // width despite the cell's narrow overall footprint.
-        { "pitchbend", "PITCH BEND","MIDI PB, -> TUNE",   13.0f, -31.0f,  40.0f, 11.0f,  40.0f, 75.0f, 0.0f,
+        { "pitchbend", "PITCH BEND","MIDI PB, -> TUNE",   13.0f, -31.0f,  25.0f, 11.0f,  40.0f, 75.0f, 0.0f,
           {
               { nullptr,       { { kParamPitchBendAmount, "AMOUNT" } } },
               { "AFTERTOUCH",  { { kParamAftertouchAmount, "AMOUNT" } } },
@@ -317,8 +324,8 @@ inline Layout buildLayout(float width, float height)
             // against this exact geometry, same as every other custom
             // placement in this file.
             const float fmRadius = 11.0f;
-            const float fmCol1 = centerX + 124.0f;
-            const float fmCol2 = centerX + 157.0f;
+            const float fmCol1 = centerX + 136.0f;
+            const float fmCol2 = centerX + 169.0f;
             const float rowAY = centerY + 20.0f;
             const float rowBY = rowAY + content->rowSpacing;
             const float rowCY = rowAY + content->rowSpacing * 2.0f;
@@ -712,7 +719,9 @@ inline void paintVoronoiCell(cairo_t* cr, const VoronoiCellGeo& cell)
 
 // the center cell (first in voronoiCells(), no tag) gets the portrait image
 // instead of a flat fill - drawn "cover"-style (fills the polygon's bbox,
-// cropping whichever axis overflows) then clipped to the polygon.
+// cropping whichever axis overflows) then clipped to the polygon, over a
+// flat fallback fill (cell.fillColor) in case the image is scaled down
+// enough to no longer fully cover the polygon.
 inline void paintPortraitCell(cairo_t* cr, const VoronoiCellGeo& cell)
 {
     cairo_surface_t* img = portraitSurface();
@@ -727,12 +736,18 @@ inline void paintPortraitCell(cairo_t* cr, const VoronoiCellGeo& cell)
     for (size_t i = 1; i < cell.polygon.size(); ++i)
         cairo_line_to(cr, cell.polygon[i].first, cell.polygon[i].second);
     cairo_close_path(cr);
+    setColor(cr, fromHex(cell.fillColor));
+    cairo_fill_preserve(cr);
     cairo_clip(cr);
 
     const CellPolygonBounds b = boundsOf(cell);
     const double imgW = (double)cairo_image_surface_get_width(img);
     const double imgH = (double)cairo_image_surface_get_height(img);
-    const double scale = std::max((double)b.w / imgW, (double)b.h / imgH);
+    // shrunk 30% from a true cover-fit so the eye reads as a smaller motif
+    // within the cell rather than filling it edge to edge - the fallback
+    // fill above shows around it since it no longer fully covers the
+    // polygon.
+    const double scale = std::max((double)b.w / imgW, (double)b.h / imgH) * 0.7;
     const double drawW = imgW * scale, drawH = imgH * scale;
     const double offX = b.x + (b.w - drawW) * 0.5;
     const double offY = b.y + (b.h - drawH) * 0.5; // source image is already just the eye, roughly centered in its own frame

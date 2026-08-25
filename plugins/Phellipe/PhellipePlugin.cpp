@@ -430,15 +430,26 @@ protected:
 
             float mixL = 0.0f, mixR = 0.0f;
             bool anyVoiceActive = false;
+            uint32_t activeVoiceCount = 0;
             for (uint32_t v = 0; v < kNumVoices; ++v)
             {
                 if (!fVoices[v].isActive())
                     continue;
                 anyVoiceActive = true;
+                ++activeVoiceCount;
                 fVoices[v].process(pitchModSemitones, waveModOffset, oscBFreeModCents, oscCFreeModCents, mixL, mixR);
             }
-            mixL *= kVoiceHeadroom;
-            mixR *= kVoiceHeadroom;
+            // headroom scales with how many voices are actually stacked up
+            // this sample - equal-power (1/sqrt(n)) down to kVoiceHeadroom's
+            // floor, which is where it plateaus at the original flat
+            // constant's own proven-safe worst case (a full dense chord
+            // plus reverb tail). A single held note was previously cut by
+            // that same worst-case factor even though nothing was piling
+            // up, making everyday single-note/small-chord playing much
+            // quieter than it needed to be.
+            const float headroom = std::clamp(1.0f / std::sqrt(std::max(1.0f, (float)activeVoiceCount)), kVoiceHeadroom, 1.0f);
+            mixL *= headroom;
+            mixR *= headroom;
 
             // GRAIN's NOISE bed is a texture layered onto the tone, not an
             // independent drone of its own - gate it by whether anything is

@@ -14,13 +14,17 @@ seeds = [
     ("Drift",      95, 500, "drift"),
     ("Grain",     300, 700, "grain"),
     ("Space",    1075, 500, "space"),
-    ("Output",    900, 705, "output"),
+    # Output/FillF swapped tags (not positions) from the original mockup -
+    # MOD WHEEL's two source rows (amount+jack each) didn't fit inside
+    # FillF's small polygon, but easily fits Output's bigger one, and
+    # OUTPUT itself (just VOLUME/WIDTH) fits FillF's polygon fine.
+    ("Output",    900, 705, "modwheel"),
     ("FillA",     600,  70, "delay"),
     ("FillB",     430, 570, "ampenv"),
     ("FillC",     820, 330, "filterenv"),
     ("FillD",     770, 640, "chorus"),
     ("FillE",      60, 700, "lfo"),
-    ("FillF",    1130, 720, "modwheel"),
+    ("FillF",    1130, 720, "output"),
     ("FillG",      15, 300, "pitchbend"),
 ]
 
@@ -31,13 +35,13 @@ colors = {
     "Drift":     "0x6b3a26",
     "Grain":     "0x4a1512",
     "Space":     "0x223a56",
-    "Output":    "0x8a5a35",
+    "Output":    "0x1a3a34",  # MOD WHEEL now lives here - keep its teal
     "FillA":     "0x7a4520",  # DELAY
     "FillB":     "0x5c2818",  # AMP ENV
     "FillC":     "0x1a2c46",  # FILTER ENV
     "FillD":     "0x2c4868",  # CHORUS
     "FillE":     "0x8a6a2a",  # LFO
-    "FillF":     "0x1a3a34",  # MOD WHEEL
+    "FillF":     "0x8a5a35",  # OUTPUT now lives here - keep its amber/brown
     "FillG":     "0x2c1e3a",  # PITCH BEND
 }
 

@@ -257,15 +257,18 @@ static bool renderScenario(const char* label, const char* wavPath, bool patch[kN
 
         float mixL = 0.0f, mixR = 0.0f;
         bool anyVoiceActive = false;
+        uint32_t activeVoiceCount = 0;
         for (uint32_t v = 0; v < kNumVoices; ++v)
         {
             if (!voices[v].isActive())
                 continue;
             anyVoiceActive = true;
+            ++activeVoiceCount;
             voices[v].process(pitchModSemitones, waveModOffset, oscBFreeModCents, oscCFreeModCents, mixL, mixR);
         }
-        mixL *= kVoiceHeadroom;
-        mixR *= kVoiceHeadroom;
+        const float headroom = std::clamp(1.0f / std::sqrt(std::max(1.0f, (float)activeVoiceCount)), kVoiceHeadroom, 1.0f);
+        mixL *= headroom;
+        mixR *= headroom;
 
         const float noiseGateTarget = anyVoiceActive ? 1.0f : 0.0f;
         const float noiseGateCoeff = 1.0f - std::exp(-1.0f / (0.01f * (float)kSampleRate));

@@ -134,6 +134,9 @@ struct KnobRowSpec
 {
     const char* subLabel; // nullptr = no sub-label drawn above this row
     std::vector<std::pair<uint32_t, const char*>> knobs;
+    float extraDx = 0.0f; // one-off horizontal nudge for this row alone,
+                           // on top of rowDxStep - for small per-row fixes
+                           // that shouldn't perturb the other rows' tuning
 };
 
 // per-functional-cell content: title/subtitle/knob row(s), anchored at the
@@ -163,7 +166,7 @@ inline const std::vector<CellContent>& cellContents()
     static const std::vector<CellContent> contents = {
         { "core",      "CORE",      "OSCILLATOR STACK", 21.0f,  6.0f, -90.0f, 14.0f, 170.0f, 84.0f, 15.0f,
           {
-              { nullptr, { { kParamVoices, "VOICES" }, { kParamDetune, "DETUNE" }, { kParamSpread, "SPREAD" }, { kParamOscALevel, "LEVEL" }, { kParamWave, "WAVE" } } },
+              { nullptr, { { kParamVoices, "VOICES" }, { kParamDetune, "DETUNE" }, { kParamSpread, "SPREAD" }, { kParamOscALevel, "LEVEL" }, { kParamWave, "WAVE" } }, -7.0f },
               { "OSC B", { { kParamOscBOctave, "OCT" }, { kParamOscBSemi, "SEMI" }, { kParamOscBWave, "WAVE" }, { kParamOscBLevel, "LEVEL" }, { kParamOscBFree, "FREE" } } },
               { "OSC C", { { kParamOscCOctave, "OCT" }, { kParamOscCSemi, "SEMI" }, { kParamOscCWave, "WAVE" }, { kParamOscCLevel, "LEVEL" }, { kParamOscCFree, "FREE" } } },
           } },
@@ -284,7 +287,7 @@ inline Layout buildLayout(float width, float height)
         for (size_t r = 0; r < content->rows.size(); ++r)
         {
             const float rowY = centerY + 20.0f + content->rowSpacing * (float)r;
-            const float rowCenterX = centerX + content->rowDxStep * (float)r;
+            const float rowCenterX = centerX + content->rowDxStep * (float)r + content->rows[r].extraDx;
             addKnobRow(L.knobs, rowCenterX, content->rowWidth, rowY, content->knobRadius, kAccent, content->rows[r].knobs);
         }
 
@@ -996,7 +999,7 @@ inline void paint(cairo_t* cr, const Layout& L, const PaintState& state)
             if (content->rows[r].subLabel == nullptr)
                 continue;
             const float rowY = centerY + 20.0f + content->rowSpacing * (float)r;
-            const float rowCenterX = centerX + content->rowDxStep * (float)r;
+            const float rowCenterX = centerX + content->rowDxStep * (float)r + content->rows[r].extraDx;
             setMonoFont(cr, 8.5f, true);
             setColor(cr, kAccent, 0.75);
             centeredText(cr, content->rows[r].subLabel, rowCenterX, rowY - content->knobRadius - 16.0f);

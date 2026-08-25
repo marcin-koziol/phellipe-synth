@@ -78,6 +78,11 @@ enum PatchDest { PatchDestPitch = 0, PatchDestCutoff, PatchDestWave, PatchDestDe
 
 static constexpr float kJackRadius = 7.0f;
 
+// retro pixel scope: mirrors PhellipePlugin.cpp's kScopeSize - keep in sync.
+// state.values[kParamScopeFirst + i] for i in [0, kScopeSize) reads left to
+// right; no separate read-offset needed, see that file's comment.
+static constexpr int kScopeSize = 32;
+
 struct Jack { float cx = 0.0f, cy = 0.0f; int index = -1; };
 
 struct Layout
@@ -87,6 +92,7 @@ struct Layout
     PresetBarLayout presetBar;
     std::array<Jack, kPatchNumSources> sourceJacks; // indexed by PatchSrc
     std::array<Jack, kPatchNumDests> destJacks;      // indexed by PatchDest
+    float scopeX = 0.0f, scopeY = 0.0f, scopeW = 0.0f, scopeH = 0.0f; // retro scope overlay rect, see buildLayout()
 };
 
 // -----------------------------------------------------------------------------------------------------------
@@ -235,6 +241,21 @@ inline Layout buildLayout(float width, float height)
         L.presetBar.nameY = y;
         L.presetBar.nameW = L.presetBar.save.x - 14.0f - L.presetBar.nameX;
         L.presetBar.nameH = h;
+    }
+
+    // --- retro scope overlay rect: fixed to the Center (portrait) cell's
+    // bbox - that cell has no tag, so it's found here rather than in the
+    // tagged-cell loop below.
+    for (const VoronoiCellGeo& cell : voronoiCells())
+    {
+        if (cell.label != nullptr)
+            continue;
+        const CellPolygonBounds b = boundsOf(cell);
+        L.scopeW = 220.0f;
+        L.scopeH = 66.0f;
+        L.scopeX = b.cx - L.scopeW * 0.5f;
+        L.scopeY = b.cy + kVoronoiHeaderHeight - L.scopeH * 0.5f;
+        break;
     }
 
     // --- voronoi field: one knob row per tagged functional cell ---
@@ -760,6 +781,54 @@ inline void paintPortraitCell(cairo_t* cr, const VoronoiCellGeo& cell)
     cairo_restore(cr);
 }
 
+// a small always-on "retro pixel" scope overlaid on the portrait cell:
+// state.values[kParamScopeFirst + i] are the last kScopeSize captured
+// samples of the final mixed output, drawn as chunky bars (not a smooth
+// line) for a blocky old-CRT/8-bit look, over a dark panel with a bright
+// phosphor-green trace. See PhellipePlugin.cpp's kScopeSize/
+// kScopeSweepSeconds comment for how the buffer is captured and why the
+// write position wrapping IS the sweep-restart look, no read-offset needed.
+inline void paintScope(cairo_t* cr, const Layout& L, const PaintState& state)
+{
+    const double x = L.scopeX, y = L.scopeY, w = L.scopeW, h = L.scopeH;
+
+    roundedRect(cr, x, y, w, h, 4.0);
+    setColor(cr, kKnobBody, 0.68);
+    cairo_fill_preserve(cr);
+    static constexpr Color kScopeGreen{ 0.25, 0.95, 0.5 };
+    setColor(cr, kScopeGreen, 0.45);
+    cairo_set_line_width(cr, 1.2);
+    cairo_stroke(cr);
+
+    cairo_save(cr);
+    roundedRect(cr, x, y, w, h, 4.0);
+    cairo_clip(cr);
+
+    const double midY = y + h * 0.5;
+    setColor(cr, kScopeGreen, 0.2);
+    cairo_set_line_width(cr, 1.0);
+    cairo_move_to(cr, x + 2.0, midY);
+    cairo_line_to(cr, x + w - 2.0, midY);
+    cairo_stroke(cr);
+
+    const double barW = w / (double)kScopeSize;
+    setColor(cr, kScopeGreen, 0.95);
+    for (int i = 0; i < kScopeSize; ++i)
+    {
+        const float s = std::clamp(state.values[kParamScopeFirst + (uint32_t)i], -1.0f, 1.0f);
+        const double barH = std::max(1.5, std::fabs((double)s) * (h * 0.5 - 3.0));
+        const double bx = x + (double)i * barW + 1.0;
+        const double bw = std::max(1.0, barW - 2.0);
+        if (s >= 0.0f)
+            cairo_rectangle(cr, bx, midY - barH, bw, barH);
+        else
+            cairo_rectangle(cr, bx, midY, bw, barH);
+    }
+    cairo_fill(cr);
+
+    cairo_restore(cr);
+}
+
 // -----------------------------------------------------------------------------------------------------------
 // patch cables
 
@@ -943,6 +1012,8 @@ inline void paint(cairo_t* cr, const Layout& L, const PaintState& state)
             connected |= isPatched(state.values, s, (int)d);
         paintJack(cr, L.destJacks[d], connected, (int)d == state.hoverDestJack, kTextMain);
     }
+
+    paintScope(cr, L, state);
 
     if (state.dragging)
     {

@@ -65,6 +65,14 @@ static constexpr const float kNoiseModRange = 0.6f;        // added to base NOIS
 // kVoiceHeadroom.
 static constexpr const float kVoiceHeadroom = 0.45f;
 
+// retro pixel scope: 32 samples of the final mixed output, captured one at
+// a time at a fixed decimation so a full buffer is one "sweep" - see
+// sampleRateChanged() for how kScopeSweepSeconds becomes a per-sample-rate
+// decimation interval, and Params.hpp's kParamScopeFirst comment for why
+// the UI needs no separate read-offset.
+static constexpr const uint32_t kScopeSize = 32;
+static constexpr const float kScopeSweepSeconds = 0.12f;
+
 // DELAY's tempo sync: 0 = Free (use the Time knob), 1..7 = the note division
 // below. A whole note is 240000/bpm ms (4 quarter notes, each 60000/bpm ms).
 static float delaySyncedMs(int syncIndex, double bpm) noexcept
@@ -112,13 +120,14 @@ protected:
     {
         const ParamInfo& info = getParamInfo(index);
 
-        // patch-cable voltage meters are read-only (see Params.hpp's
-        // kParamMeterFirst comment) - not automatable, just periodically
-        // polled by the host and pushed to the UI as output-parameter
-        // updates.
+        // patch-cable voltage meters and the retro scope buffer are both
+        // read-only (see Params.hpp's kParamMeterFirst/kParamScopeFirst
+        // comments) - not automatable, just periodically polled by the
+        // host and pushed to the UI as output-parameter updates.
         const bool isMeter = index >= kParamMeterFirst && index < kParamMeterFirst + kNumSources;
+        const bool isScope = index >= kParamScopeFirst && index < kParamScopeFirst + kScopeSize;
 
-        parameter.hints = isMeter ? kParameterIsOutput : kParameterIsAutomatable;
+        parameter.hints = (isMeter || isScope) ? kParameterIsOutput : kParameterIsAutomatable;
         parameter.name = info.name;
         parameter.symbol = info.symbol;
         parameter.unit = info.unit;
@@ -147,6 +156,8 @@ protected:
         }
         if (index >= kParamMeterFirst && index < kParamMeterFirst + kNumSources)
             return fMeter[index - kParamMeterFirst];
+        if (index >= kParamScopeFirst && index < kParamScopeFirst + kScopeSize)
+            return fScopeBuffer[index - kParamScopeFirst];
 
         switch (index)
         {
@@ -330,6 +341,8 @@ protected:
 
         fFilterEnv.setSampleRate(fSampleRate);
         fAmpEnvRef.setSampleRate(fSampleRate);
+
+        fScopeDecimateInterval = std::max(1u, (uint32_t)(fSampleRate * kScopeSweepSeconds / (double)kScopeSize));
     }
 
     void run(const float**, float** outputs, uint32_t frames,
@@ -517,8 +530,20 @@ protected:
             // OUTPUT: mid/side width, master volume, safety saturation
             const float mid = (spacedL + spacedR) * 0.5f;
             const float side = (spacedL - spacedR) * 0.5f * fWidth;
-            outL[frame] = std::tanh((mid + side) * fVolume);
-            outR[frame] = std::tanh((mid - side) * fVolume);
+            const float sampleL = std::tanh((mid + side) * fVolume);
+            const float sampleR = std::tanh((mid - side) * fVolume);
+            outL[frame] = sampleL;
+            outR[frame] = sampleR;
+
+            // retro pixel scope: one decimated mono sample at a time: see
+            // kScopeSweepSeconds's comment above for why the write position
+            // just wraps rather than needing a separate read-offset.
+            if (++fScopeSampleCounter >= fScopeDecimateInterval)
+            {
+                fScopeSampleCounter = 0;
+                fScopeBuffer[fScopePos] = (sampleL + sampleR) * 0.5f;
+                fScopePos = (fScopePos + 1) % kScopeSize;
+            }
         }
 
         while (nextEvent < midiEventCount)
@@ -653,6 +678,15 @@ private:
     // comment in Params.hpp - written every sample in run(), read back via
     // getParameterValue() as output parameters.
     float fMeter[kNumSources] = {};
+
+    // retro pixel scope: fScopeBuffer[i], see kScopeSize's comment above -
+    // fScopeDecimateInterval (recomputed in sampleRateChanged()) samples
+    // pass between each capture; fScopeSampleCounter/fScopePos track where
+    // in that cycle/buffer we are.
+    float fScopeBuffer[kScopeSize] = {};
+    uint32_t fScopePos = 0;
+    uint32_t fScopeSampleCounter = 0;
+    uint32_t fScopeDecimateInterval = 128;
 
     // patch matrix: fPatch[source][dest], see the Src/Dest enums above.
     // Defaults reproduce the plugin's old hardwired behavior (drift/filter-

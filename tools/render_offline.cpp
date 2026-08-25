@@ -113,7 +113,10 @@ static void writeWav(const char* path, const std::vector<float>& L, const std::v
 static bool renderScenario(const char* label, const char* wavPath, bool patch[kNumSources][kNumDests],
                             int delaySync = 0, float modWheelValue = 0.0f, float pitchBendValue = 0.0f,
                             float velocityValue = 0.9f, float aftertouchValue = 0.0f,
-                            float oscBWave = 0.3f, float oscCWave = 0.3f)
+                            float oscBWave = 0.3f, float oscCWave = 0.3f,
+                            float oscALevel = 1.0f, float oscBLevel = 1.0f, float oscCLevel = 1.0f,
+                            float fmAtoB = 0.0f, float fmAtoC = 0.0f, float fmBtoA = 0.0f,
+                            float fmBtoC = 0.0f, float fmCtoA = 0.0f, float fmCtoB = 0.0f)
 {
     std::array<Voice, kNumVoices> voices;
     VoiceParams voiceParams;
@@ -123,6 +126,15 @@ static bool renderScenario(const char* label, const char* wavPath, bool patch[kN
     voiceParams.wave = 0.3f;
     voiceParams.oscBWave = oscBWave;
     voiceParams.oscCWave = oscCWave;
+    voiceParams.oscALevel = oscALevel;
+    voiceParams.oscBLevel = oscBLevel;
+    voiceParams.oscCLevel = oscCLevel;
+    voiceParams.fmAtoB = fmAtoB;
+    voiceParams.fmAtoC = fmAtoC;
+    voiceParams.fmBtoA = fmBtoA;
+    voiceParams.fmBtoC = fmBtoC;
+    voiceParams.fmCtoA = fmCtoA;
+    voiceParams.fmCtoB = fmCtoB;
 
     for (Voice& v : voices)
     {
@@ -424,6 +436,37 @@ int main()
                                  patch, /*delaySync=*/0, /*modWheelValue=*/0.0f, /*pitchBendValue=*/0.0f,
                                  /*velocityValue=*/0.9f, /*aftertouchValue=*/0.0f,
                                  /*oscBWave=*/0.9f, /*oscCWave=*/0.0f);
+    }
+
+    // 10) B FM-modulates C at full amount, B itself muted from the mix (the
+    // exact "B drives C's timbre but isn't heard on its own" idiom this was
+    // built for) - confirms a modulator can be silent yet still audible
+    // through what it's modulating.
+    {
+        bool patch[kNumSources][kNumDests] = {};
+        allOk &= renderScenario("fm b->c, b muted", "/tmp/phellipe_offline_fm_muted.wav",
+                                 patch, /*delaySync=*/0, /*modWheelValue=*/0.0f, /*pitchBendValue=*/0.0f,
+                                 /*velocityValue=*/0.9f, /*aftertouchValue=*/0.0f,
+                                 /*oscBWave=*/0.3f, /*oscCWave=*/0.3f,
+                                 /*oscALevel=*/1.0f, /*oscBLevel=*/0.0f, /*oscCLevel=*/1.0f,
+                                 /*fmAtoB=*/0.0f, /*fmAtoC=*/0.0f, /*fmBtoA=*/0.0f,
+                                 /*fmBtoC=*/0.8f, /*fmCtoA=*/0.0f, /*fmCtoB=*/0.0f);
+    }
+
+    // 11) full cyclic FM matrix (A->B->C->A all enabled at once) - the
+    // concrete stability check for the one-sample-delayed-feedback trick,
+    // not just an assertion: a routing loop like this is exactly what the
+    // "full matrix" topology allows and the naive same-sample version of
+    // this would be a physically-impossible cyclic dependency.
+    {
+        bool patch[kNumSources][kNumDests] = {};
+        allOk &= renderScenario("fm full cyclic matrix", "/tmp/phellipe_offline_fm_cyclic.wav",
+                                 patch, /*delaySync=*/0, /*modWheelValue=*/0.0f, /*pitchBendValue=*/0.0f,
+                                 /*velocityValue=*/0.9f, /*aftertouchValue=*/0.0f,
+                                 /*oscBWave=*/0.3f, /*oscCWave=*/0.3f,
+                                 /*oscALevel=*/1.0f, /*oscBLevel=*/1.0f, /*oscCLevel=*/1.0f,
+                                 /*fmAtoB=*/0.6f, /*fmAtoC=*/0.0f, /*fmBtoA=*/0.0f,
+                                 /*fmBtoC=*/0.6f, /*fmCtoA=*/0.6f, /*fmCtoB=*/0.0f);
     }
 
     return allOk ? 0 : 1;

@@ -249,6 +249,26 @@ inline const std::vector<FactoryPreset>& factoryPresets()
             { "pitchbend_amount", 0.4f },
             { "patch_pitchbend_chorusdepth", 1.0f },
         }},
+
+        // OSC B is muted from the mix entirely (osc_b_level = 0) but still
+        // running, and heavily FM's OSC C (fm_b_to_c) - a "hidden operator"
+        // shaping C's timbre into a clangorous bell/metallic texture while
+        // never being heard on its own. OSC A stays a plain sine-ish root
+        // underneath for a stable fundamental.
+        { "Hidden Operator", {
+            { "voices", 2.0f }, { "detune", 8.0f }, { "spread", 0.5f }, { "wave", 0.1f },
+            { "osc_c_octave", -1.0f }, { "osc_c_semi", 7.0f }, { "osc_c_wave", 0.0f },
+            { "osc_b_level", 0.0f },
+            { "cutoff", 2200.0f }, { "resonance", 0.2f }, { "drive", 0.05f },
+            { "drift_rate", 0.07f }, { "drift_depth", 0.2f }, { "drift_chaos", 0.15f },
+            { "noise", 0.02f }, { "grain", 0.0f }, { "age", 0.0f },
+            { "space_size", 0.55f }, { "space_decay", 0.55f }, { "space_mix", 0.3f },
+            { "volume", 0.7f }, { "width", 0.7f },
+            { "amp_attack", 0.6f }, { "amp_decay", 0.3f }, { "amp_sustain", 1.0f }, { "amp_release", 1.2f },
+            { "delay_time", 340.0f }, { "delay_feedback", 0.3f }, { "delay_mix", 0.2f },
+            { "chorus_rate", 0.2f }, { "chorus_depth", 0.2f }, { "chorus_mix", 0.15f },
+            { "fm_b_to_c", 0.5f },
+        }},
     };
     return presets;
 }

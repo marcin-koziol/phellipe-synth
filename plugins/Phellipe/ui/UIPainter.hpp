@@ -156,9 +156,9 @@ inline const std::vector<CellContent>& cellContents()
     static const std::vector<CellContent> contents = {
         { "core",      "CORE",      "OSCILLATOR STACK", 21.0f,  6.0f, -75.0f, 14.0f, 170.0f, 84.0f, 15.0f,
           {
-              { nullptr, { { kParamVoices, "VOICES" }, { kParamDetune, "DETUNE" }, { kParamSpread, "SPREAD" }, { kParamWave, "WAVE" } } },
-              { "OSC B", { { kParamOscBOctave, "OCT" }, { kParamOscBSemi, "SEMI" }, { kParamOscBWave, "WAVE" }, { kParamOscBFree, "FREE" } } },
-              { "OSC C", { { kParamOscCOctave, "OCT" }, { kParamOscCSemi, "SEMI" }, { kParamOscCWave, "WAVE" }, { kParamOscCFree, "FREE" } } },
+              { nullptr, { { kParamVoices, "VOICES" }, { kParamDetune, "DETUNE" }, { kParamSpread, "SPREAD" }, { kParamOscALevel, "LEVEL" }, { kParamWave, "WAVE" } } },
+              { "OSC B", { { kParamOscBOctave, "OCT" }, { kParamOscBSemi, "SEMI" }, { kParamOscBWave, "WAVE" }, { kParamOscBLevel, "LEVEL" }, { kParamOscBFree, "FREE" } } },
+              { "OSC C", { { kParamOscCOctave, "OCT" }, { kParamOscCSemi, "SEMI" }, { kParamOscCWave, "WAVE" }, { kParamOscCLevel, "LEVEL" }, { kParamOscCFree, "FREE" } } },
           } },
         { "resonator", "RESONATOR", "FILTER + BODY",     21.0f,  10.0f,  10.0f, 18.0f, 175.0f, 0.0f, 0.0f,
           { { nullptr, { { kParamCutoff, "CUTOFF" }, { kParamResonance, "RESO" }, { kParamDrive, "DRIVE" } } } } },
@@ -308,6 +308,27 @@ inline Layout buildLayout(float width, float height)
                 L.destJacks[PatchDestOscBFree] = { kx + content->knobRadius + 12.0f, ky, PatchDestOscBFree };
             if (knobCenter(kParamOscCFree, kx, ky))
                 L.destJacks[PatchDestOscCFree] = { kx + content->knobRadius + 12.0f, ky, PatchDestOscCFree };
+
+            // FM matrix: 6 compact knobs in the cell's open right-side area
+            // (this polygon is unusually wide - see tools/gen_voronoi.py -
+            // so there's real room past the tuning rows' own jacks without
+            // touching any other cell), each row vertically aligned with
+            // that oscillator's own tuning row above. Positions hand-tuned
+            // against this exact geometry, same as every other custom
+            // placement in this file.
+            const float fmRadius = 11.0f;
+            const float fmCol1 = centerX + 124.0f;
+            const float fmCol2 = centerX + 157.0f;
+            const float rowAY = centerY + 20.0f;
+            const float rowBY = rowAY + content->rowSpacing;
+            const float rowCY = rowAY + content->rowSpacing * 2.0f;
+
+            L.knobs.push_back({ kParamFmAtoB, fmCol1, rowAY, fmRadius, "A>B", kAccent });
+            L.knobs.push_back({ kParamFmAtoC, fmCol2, rowAY, fmRadius, "A>C", kAccent });
+            L.knobs.push_back({ kParamFmBtoA, fmCol1, rowBY, fmRadius, "B>A", kAccent });
+            L.knobs.push_back({ kParamFmBtoC, fmCol2, rowBY, fmRadius, "B>C", kAccent });
+            L.knobs.push_back({ kParamFmCtoA, fmCol1, rowCY, fmRadius, "C>A", kAccent });
+            L.knobs.push_back({ kParamFmCtoB, fmCol2, rowCY, fmRadius, "C>B", kAccent });
         }
         else if (std::strcmp(cell.label, "resonator") == 0)
         {

@@ -164,11 +164,11 @@ struct CellContent
 inline const std::vector<CellContent>& cellContents()
 {
     static const std::vector<CellContent> contents = {
-        { "core",      "CORE",      "OSCILLATOR STACK", 21.0f,  6.0f, -90.0f, 14.0f, 170.0f, 84.0f, 15.0f,
+        { "core",      "CORE",      "OSCILLATOR STACK", 21.0f, -2.0f, -98.0f, 14.0f, 170.0f, 84.0f, 15.0f,
           {
               { nullptr, { { kParamVoices, "VOICES" }, { kParamDetune, "DETUNE" }, { kParamSpread, "SPREAD" }, { kParamOscALevel, "LEVEL" }, { kParamWave, "WAVE" } }, -7.0f },
               { "OSC B", { { kParamOscBOctave, "OCT" }, { kParamOscBSemi, "SEMI" }, { kParamOscBWave, "WAVE" }, { kParamOscBLevel, "LEVEL" }, { kParamOscBFree, "FREE" } } },
-              { "OSC C", { { kParamOscCOctave, "OCT" }, { kParamOscCSemi, "SEMI" }, { kParamOscCWave, "WAVE" }, { kParamOscCLevel, "LEVEL" }, { kParamOscCFree, "FREE" } } },
+              { "OSC C", { { kParamOscCOctave, "OCT" }, { kParamOscCSemi, "SEMI" }, { kParamOscCWave, "WAVE" }, { kParamOscCLevel, "LEVEL" }, { kParamOscCFree, "FREE" } }, -8.0f },
           } },
         { "resonator", "RESONATOR", "FILTER + BODY",     21.0f,  10.0f,  -8.0f, 18.0f, 215.0f, 0.0f, 0.0f,
           { { nullptr, { { kParamCutoff, "CUTOFF" }, { kParamResonance, "RESO" }, { kParamDrive, "DRIVE" } } } } },
@@ -351,6 +351,11 @@ inline Layout buildLayout(float width, float height)
             const float fmRadius = 11.0f;
             const float fmCol1 = centerX + 136.0f;
             const float fmCol2 = centerX + 169.0f;
+            // bottom row (OSC C) gets its own, further-right FM columns -
+            // its tuning row was nudged left (see extraDx above) to open up
+            // breathing room, so the FM knobs move the other way to match.
+            const float fmCol1C = fmCol1 + 10.0f;
+            const float fmCol2C = fmCol2 + 10.0f;
             const float rowAY = centerY + 20.0f;
             const float rowBY = rowAY + content->rowSpacing;
             const float rowCY = rowAY + content->rowSpacing * 2.0f;
@@ -359,8 +364,8 @@ inline Layout buildLayout(float width, float height)
             L.knobs.push_back({ kParamFmAtoC, fmCol2, rowAY, fmRadius, "A>C", kAccent });
             L.knobs.push_back({ kParamFmBtoA, fmCol1, rowBY, fmRadius, "B>A", kAccent });
             L.knobs.push_back({ kParamFmBtoC, fmCol2, rowBY, fmRadius, "B>C", kAccent });
-            L.knobs.push_back({ kParamFmCtoA, fmCol1, rowCY, fmRadius, "C>A", kAccent });
-            L.knobs.push_back({ kParamFmCtoB, fmCol2, rowCY, fmRadius, "C>B", kAccent });
+            L.knobs.push_back({ kParamFmCtoA, fmCol1C, rowCY, fmRadius, "C>A", kAccent });
+            L.knobs.push_back({ kParamFmCtoB, fmCol2C, rowCY, fmRadius, "C>B", kAccent });
 
             // FM amounts are patchable destinations too now - one jack above
             // each of the 6 knobs above.
@@ -369,8 +374,8 @@ inline Layout buildLayout(float width, float height)
             L.destJacks[PatchDestFmAtoC] = { fmCol2, rowAY - fmJackDy, PatchDestFmAtoC };
             L.destJacks[PatchDestFmBtoA] = { fmCol1, rowBY - fmJackDy, PatchDestFmBtoA };
             L.destJacks[PatchDestFmBtoC] = { fmCol2, rowBY - fmJackDy, PatchDestFmBtoC };
-            L.destJacks[PatchDestFmCtoA] = { fmCol1, rowCY - fmJackDy, PatchDestFmCtoA };
-            L.destJacks[PatchDestFmCtoB] = { fmCol2, rowCY - fmJackDy, PatchDestFmCtoB };
+            L.destJacks[PatchDestFmCtoA] = { fmCol1C, rowCY - fmJackDy, PatchDestFmCtoA };
+            L.destJacks[PatchDestFmCtoB] = { fmCol2C, rowCY - fmJackDy, PatchDestFmCtoB };
         }
         else if (std::strcmp(cell.label, "resonator") == 0)
         {

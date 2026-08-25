@@ -52,7 +52,13 @@ protected:
         if (index >= kParamCount)
             return;
 
-        if (value != fValues[index])
+        // Meters and the scope buffer are output-only telemetry (DSP-driven,
+        // updated continuously even with no notes held - drift/LFO never
+        // stop) - they must keep repainting live but must never mark the
+        // preset unsaved or trigger a knob's value-flash popup.
+        const bool isOutputParam = index >= kParamMeterFirst && index < kParamPatchFirst;
+
+        if (value != fValues[index] && !isOutputParam)
         {
             fValueDisplayUntil[index] = std::chrono::steady_clock::now() + std::chrono::milliseconds(1200);
             fHasActiveValueDisplay = true;
@@ -250,6 +256,7 @@ protected:
                 setParameterValue(k.param, def);
                 editParameter(k.param, false);
                 fValues[k.param] = def;
+                fDirty = true;
                 fDragKnob = -1;
                 repaint();
                 return true;
@@ -312,6 +319,7 @@ protected:
 
             const float value = ui::normalizedToParam(k.param, t);
             fValues[k.param] = value;
+            fDirty = true;
             setParameterValue(k.param, value);
             repaint();
             return true;
@@ -360,6 +368,7 @@ protected:
         setParameterValue(k.param, value);
         editParameter(k.param, false);
         fValues[k.param] = value;
+        fDirty = true;
         repaint();
         return true;
     }
@@ -440,6 +449,7 @@ private:
         setParameterValue(param, value);
         editParameter(param, false);
         fValues[param] = value;
+        fDirty = true;
     }
 
     int hitTestSourceJack(double x, double y) const noexcept

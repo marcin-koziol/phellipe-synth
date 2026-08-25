@@ -254,7 +254,7 @@ inline Layout buildLayout(float width, float height)
         L.scopeW = 220.0f;
         L.scopeH = 66.0f;
         L.scopeX = b.cx - L.scopeW * 0.5f;
-        L.scopeY = b.cy + kVoronoiHeaderHeight - L.scopeH * 0.5f;
+        L.scopeY = b.cy + kVoronoiHeaderHeight - L.scopeH * 0.5f - 22.0f; // nudged up to run through the pupil
         break;
     }
 
@@ -781,50 +781,75 @@ inline void paintPortraitCell(cairo_t* cr, const VoronoiCellGeo& cell)
     cairo_restore(cr);
 }
 
+// 6-stripe pride-flag gradient across t in [0,1], left to right.
+inline Color prideGradient(double t) noexcept
+{
+    static constexpr Color kStripes[6] = {
+        fromHex(0xE40303), // red
+        fromHex(0xFF8C00), // orange
+        fromHex(0xFFED00), // yellow
+        fromHex(0x008026), // green
+        fromHex(0x004DFF), // blue
+        fromHex(0x732982), // violet
+    };
+    t = t < 0.0 ? 0.0 : (t > 1.0 ? 1.0 : t);
+    const double scaled = t * 5.0; // 5 segments spanning the 6 stripes
+    const int idx = std::min(4, (int)scaled);
+    const double frac = scaled - (double)idx;
+    const Color& a = kStripes[idx];
+    const Color& b = kStripes[idx + 1];
+    return Color{ a.r + (b.r - a.r) * frac, a.g + (b.g - a.g) * frac, a.b + (b.b - a.b) * frac };
+}
+
 // a small always-on "retro pixel" scope overlaid on the portrait cell:
 // state.values[kParamScopeFirst + i] are the last kScopeSize captured
 // samples of the final mixed output, drawn as chunky bars (not a smooth
-// line) for a blocky old-CRT/8-bit look, over a dark panel with a bright
-// phosphor-green trace. See PhellipePlugin.cpp's kScopeSize/
-// kScopeSweepSeconds comment for how the buffer is captured and why the
-// write position wrapping IS the sweep-restart look, no read-offset needed.
+// line) for a blocky old-CRT/8-bit look, no panel/frame - just the bars
+// themselves, colored in a horizontal pride-flag gradient, directly over
+// the portrait. See PhellipePlugin.cpp's kScopeSize/kScopeSweepSeconds
+// comment for how the buffer is captured and why the write position
+// wrapping IS the sweep-restart look, no read-offset needed.
 inline void paintScope(cairo_t* cr, const Layout& L, const PaintState& state)
 {
     const double x = L.scopeX, y = L.scopeY, w = L.scopeW, h = L.scopeH;
 
-    roundedRect(cr, x, y, w, h, 4.0);
-    setColor(cr, kKnobBody, 0.68);
-    cairo_fill_preserve(cr);
-    static constexpr Color kScopeGreen{ 0.25, 0.95, 0.5 };
-    setColor(cr, kScopeGreen, 0.45);
-    cairo_set_line_width(cr, 1.2);
-    cairo_stroke(cr);
+    // only draw while something is actually sounding: silence naturally
+    // decays the captured buffer toward ~0 on its own, so a peak threshold
+    // on the buffer itself is enough - no separate "is anything playing"
+    // signal needed from the DSP side.
+    float peak = 0.0f;
+    for (int i = 0; i < kScopeSize; ++i)
+        peak = std::max(peak, std::fabs(state.values[kParamScopeFirst + (uint32_t)i]));
+    if (peak < 0.004f)
+        return;
 
     cairo_save(cr);
-    roundedRect(cr, x, y, w, h, 4.0);
+    cairo_rectangle(cr, x, y, w, h);
     cairo_clip(cr);
 
     const double midY = y + h * 0.5;
-    setColor(cr, kScopeGreen, 0.2);
-    cairo_set_line_width(cr, 1.0);
-    cairo_move_to(cr, x + 2.0, midY);
-    cairo_line_to(cr, x + w - 2.0, midY);
-    cairo_stroke(cr);
-
+    const double maxBarH = h * 0.5 - 2.0;
     const double barW = w / (double)kScopeSize;
-    setColor(cr, kScopeGreen, 0.95);
+    static constexpr double kVisualGain = 2.5; // amplified for visibility, not literal amplitude
     for (int i = 0; i < kScopeSize; ++i)
     {
         const float s = std::clamp(state.values[kParamScopeFirst + (uint32_t)i], -1.0f, 1.0f);
-        const double barH = std::max(1.5, std::fabs((double)s) * (h * 0.5 - 3.0));
+        const double barH = std::clamp(std::fabs((double)s) * kVisualGain * maxBarH, 1.0, maxBarH);
+        // vignette: fades only the outermost few bars toward transparent so
+        // the strip blends into the portrait instead of ending in a hard
+        // edge - t=0/1 at the ends, t=0.5 at the middle, plateauing near 1
+        // until close to either edge.
+        const double t = (double)i / (double)(kScopeSize - 1);
+        const double fade = 1.0 - std::pow(std::fabs(2.0 * t - 1.0), 6.0);
         const double bx = x + (double)i * barW + 1.0;
         const double bw = std::max(1.0, barW - 2.0);
+        setColor(cr, prideGradient(t), fade);
         if (s >= 0.0f)
             cairo_rectangle(cr, bx, midY - barH, bw, barH);
         else
             cairo_rectangle(cr, bx, midY, bw, barH);
+        cairo_fill(cr);
     }
-    cairo_fill(cr);
 
     cairo_restore(cr);
 }

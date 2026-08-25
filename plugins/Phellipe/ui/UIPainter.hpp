@@ -714,7 +714,7 @@ inline void paintPortraitCell(cairo_t* cr, const VoronoiCellGeo& cell)
     const double scale = std::max((double)b.w / imgW, (double)b.h / imgH);
     const double drawW = imgW * scale, drawH = imgH * scale;
     const double offX = b.x + (b.w - drawW) * 0.5;
-    const double offY = b.y + (b.h - drawH) * 0.22 - 50.0; // biased toward the top of the source image, keeps the eye higher in the cell
+    const double offY = b.y + (b.h - drawH) * 0.5; // source image is already just the eye, roughly centered in its own frame
 
     cairo_translate(cr, offX, offY);
     cairo_scale(cr, scale, scale);

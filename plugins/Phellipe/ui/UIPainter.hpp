@@ -62,7 +62,7 @@ struct Button { float x, y, w, h; const char* label; Color accent; };
 
 struct PresetBarLayout
 {
-    Button prev, next, save, del;
+    Button prev, next, save, del, scale; // scale = UI scale (UiScale.hpp), label set at paint time
     float nameX, nameY, nameW, nameH;
     Color accent;
 };
@@ -243,7 +243,9 @@ inline Layout buildLayout(float width, float height)
 
         L.presetBar.nameX = L.presetBar.next.x + 30.0f + 14.0f;
         L.presetBar.nameY = y;
-        L.presetBar.nameW = L.presetBar.save.x - 14.0f - L.presetBar.nameX;
+        L.presetBar.scale = { L.presetBar.save.x - 8.0f - 96.0f, L.presetBar.save.y, 96.0f, L.presetBar.save.h, "",
+                              L.presetBar.save.accent };
+        L.presetBar.nameW = L.presetBar.scale.x - 14.0f - L.presetBar.nameX;
         L.presetBar.nameH = h;
     }
 
@@ -619,6 +621,7 @@ struct PaintState
     bool presetEditingName = false;
     const char* presetEditBuffer = "";
     int hoverPresetButton = -1; // 0=prev,1=next,2=save,3=delete, or -1
+    const char* scaleLabel = "";      // UI-scale button text (UiScale.hpp formatLabel)
     bool presetDeleteEnabled = false;
 
     // patch cables
@@ -722,6 +725,10 @@ inline void paintPresetBar(cairo_t* cr, const PresetBarLayout& pb, const PaintSt
     paintButton(cr, pb.next, state.hoverPresetButton == 1, true);
     paintButton(cr, pb.save, state.hoverPresetButton == 2, true);
     paintButton(cr, pb.del,  state.hoverPresetButton == 3, state.presetDeleteEnabled);
+
+    Button scale = pb.scale;
+    scale.label = state.scaleLabel;
+    paintButton(cr, scale, state.hoverPresetButton == 4, true);
 
     setMonoFont(cr, 12.0);
     if (state.presetEditingName)

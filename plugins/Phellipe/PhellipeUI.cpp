@@ -52,10 +52,20 @@ public:
 protected:
     // ---------------------------------------------------------------------
 
+    // the UI works in real units (Hz, s, ...); the host speaks positions for
+    // log-curved parameters (paramToHost() in Params.hpp) - this hides
+    // UI::setParameterValue so every call in this class converts
+    void setParameterValue(uint32_t index, float value)
+    {
+        UI::setParameterValue(index, paramToHost(index, value));
+    }
+
     void parameterChanged(uint32_t index, float value) override
     {
         if (index >= kParamCount)
             return;
+
+        value = paramFromHost(index, value);
 
         // Meters and the scope buffer are output-only telemetry (DSP-driven,
         // updated continuously even with no notes held - drift/LFO never

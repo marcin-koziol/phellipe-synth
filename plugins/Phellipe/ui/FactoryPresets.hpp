@@ -32,7 +32,7 @@ inline const std::vector<FactoryPreset>& factoryPresets()
         // dark, sub-heavy, barely-moving - the default starting point
         { "Deep Well", {
             { "voices", 5.0f }, { "detune", 8.0f }, { "spread", 0.6f }, { "wave", 0.1f },
-            { "cutoff", 600.0f }, { "resonance", 0.35f }, { "drive", 0.1f },
+            { "cutoff_pos", 49.2f /* 600 Hz */ }, { "resonance", 0.35f }, { "drive", 0.1f },
             { "drift_rate", 0.08f }, { "drift_depth", 0.4f }, { "drift_chaos", 0.15f },
             { "noise", 0.05f }, { "grain", 0.0f }, { "age", 0.1f },
             { "space_size", 0.7f }, { "space_decay", 0.7f }, { "space_mix", 0.4f },
@@ -41,7 +41,7 @@ inline const std::vector<FactoryPreset>& factoryPresets()
         // wider, brighter, more actively drifting - an evolving pad
         { "Slow Bloom", {
             { "voices", 4.0f }, { "detune", 18.0f }, { "spread", 0.7f }, { "wave", 0.5f },
-            { "cutoff", 2200.0f }, { "resonance", 0.25f }, { "drive", 0.0f },
+            { "cutoff_pos", 68.0f /* 2200 Hz */ }, { "resonance", 0.25f }, { "drive", 0.0f },
             { "drift_rate", 0.2f }, { "drift_depth", 0.6f }, { "drift_chaos", 0.3f },
             { "noise", 0.1f }, { "grain", 0.0f }, { "age", 0.0f },
             { "space_size", 0.6f }, { "space_decay", 0.55f }, { "space_mix", 0.35f },
@@ -50,7 +50,7 @@ inline const std::vector<FactoryPreset>& factoryPresets()
         // texture-forward: noisy, stuttering, degraded
         { "Rust & Static", {
             { "voices", 3.0f }, { "detune", 25.0f }, { "spread", 0.4f }, { "wave", 0.7f },
-            { "cutoff", 1500.0f }, { "resonance", 0.5f }, { "drive", 0.3f },
+            { "cutoff_pos", 62.5f /* 1500 Hz */ }, { "resonance", 0.5f }, { "drive", 0.3f },
             { "drift_rate", 0.3f }, { "drift_depth", 0.3f }, { "drift_chaos", 0.6f },
             { "noise", 0.35f }, { "grain", 0.4f }, { "age", 0.6f },
             { "space_size", 0.4f }, { "space_decay", 0.4f }, { "space_mix", 0.25f },
@@ -59,7 +59,7 @@ inline const std::vector<FactoryPreset>& factoryPresets()
         // vast, cold, wide open
         { "Glacier", {
             { "voices", 6.0f }, { "detune", 6.0f }, { "spread", 0.9f }, { "wave", 0.05f },
-            { "cutoff", 3500.0f }, { "resonance", 0.15f }, { "drive", 0.0f },
+            { "cutoff_pos", 74.8f /* 3500 Hz */ }, { "resonance", 0.15f }, { "drive", 0.0f },
             { "drift_rate", 0.05f }, { "drift_depth", 0.5f }, { "drift_chaos", 0.1f },
             { "noise", 0.02f }, { "grain", 0.0f }, { "age", 0.0f },
             { "space_size", 1.0f }, { "space_decay", 0.85f }, { "space_mix", 0.6f },
@@ -68,7 +68,7 @@ inline const std::vector<FactoryPreset>& factoryPresets()
         // narrow, wobbly, heavily aged - a half-remembered tape loop
         { "Tape Ghost", {
             { "voices", 2.0f }, { "detune", 15.0f }, { "spread", 0.3f }, { "wave", 0.4f },
-            { "cutoff", 1200.0f }, { "resonance", 0.3f }, { "drive", 0.15f },
+            { "cutoff_pos", 59.3f /* 1200 Hz */ }, { "resonance", 0.3f }, { "drive", 0.15f },
             { "drift_rate", 0.4f }, { "drift_depth", 0.4f }, { "drift_chaos", 0.5f },
             { "noise", 0.15f }, { "grain", 0.2f }, { "age", 0.8f },
             { "space_size", 0.5f }, { "space_decay", 0.5f }, { "space_mix", 0.3f },
@@ -84,7 +84,7 @@ inline const std::vector<FactoryPreset>& factoryPresets()
         { "Interval Choir", {
             { "voices", 2.0f }, { "detune", 6.0f }, { "spread", 0.6f }, { "wave", 0.25f },
             { "osc_b_octave", -1.0f }, { "osc_c_semi", 7.0f },
-            { "cutoff", 2000.0f }, { "resonance", 0.2f }, { "drive", 0.05f },
+            { "cutoff_pos", 66.7f /* 2000 Hz */ }, { "resonance", 0.2f }, { "drive", 0.05f },
             { "drift_rate", 0.1f }, { "drift_depth", 0.3f }, { "drift_chaos", 0.1f },
             { "noise", 0.05f }, { "grain", 0.0f }, { "age", 0.0f },
             { "space_size", 0.6f }, { "space_decay", 0.6f }, { "space_mix", 0.35f },
@@ -101,7 +101,7 @@ inline const std::vector<FactoryPreset>& factoryPresets()
         // ENV's only job here is steering the LFO, not the filter itself.
         { "Ghost Chain", {
             { "voices", 3.0f }, { "detune", 10.0f }, { "spread", 0.5f }, { "wave", 0.35f },
-            { "cutoff", 1200.0f }, { "resonance", 0.3f }, { "drive", 0.05f },
+            { "cutoff_pos", 59.3f /* 1200 Hz */ }, { "resonance", 0.3f }, { "drive", 0.05f },
             { "drift_rate", 0.1f }, { "drift_depth", 0.2f }, { "drift_chaos", 0.2f },
             { "noise", 0.05f }, { "grain", 0.1f }, { "age", 0.1f },
             { "space_size", 0.6f }, { "space_decay", 0.6f }, { "space_mix", 0.3f },
@@ -120,7 +120,7 @@ inline const std::vector<FactoryPreset>& factoryPresets()
         // texture that never quite repeats.
         { "Feedback Loop", {
             { "voices", 4.0f }, { "detune", 20.0f }, { "spread", 0.5f }, { "wave", 0.6f },
-            { "cutoff", 1800.0f }, { "resonance", 0.4f }, { "drive", 0.2f },
+            { "cutoff_pos", 65.1f /* 1800 Hz */ }, { "resonance", 0.4f }, { "drive", 0.2f },
             { "drift_rate", 0.15f }, { "drift_depth", 0.2f }, { "drift_chaos", 0.4f },
             { "noise", 0.1f }, { "grain", 0.3f }, { "age", 0.2f },
             { "space_size", 0.5f }, { "space_decay", 0.5f }, { "space_mix", 0.25f },
@@ -137,7 +137,7 @@ inline const std::vector<FactoryPreset>& factoryPresets()
         // like a pendulum losing and regaining momentum.
         { "Pendulum", {
             { "voices", 3.0f }, { "detune", 8.0f }, { "spread", 0.4f }, { "wave", 0.2f },
-            { "cutoff", 2500.0f }, { "resonance", 0.2f }, { "drive", 0.0f },
+            { "cutoff_pos", 69.9f /* 2500 Hz */ }, { "resonance", 0.2f }, { "drive", 0.0f },
             { "drift_rate", 0.06f }, { "drift_depth", 0.6f }, { "drift_chaos", 0.2f },
             { "noise", 0.03f }, { "grain", 0.0f }, { "age", 0.05f },
             { "space_size", 0.55f }, { "space_decay", 0.6f }, { "space_mix", 0.3f },
@@ -155,7 +155,7 @@ inline const std::vector<FactoryPreset>& factoryPresets()
         // is off so AMP ENV is the only thing driving the filter here.
         { "Static Bloom", {
             { "voices", 3.0f }, { "detune", 12.0f }, { "spread", 0.5f }, { "wave", 0.4f },
-            { "cutoff", 800.0f }, { "resonance", 0.3f }, { "drive", 0.1f },
+            { "cutoff_pos", 53.4f /* 800 Hz */ }, { "resonance", 0.3f }, { "drive", 0.1f },
             { "drift_rate", 0.1f }, { "drift_depth", 0.2f }, { "drift_chaos", 0.2f },
             { "noise", 0.08f }, { "grain", 0.15f }, { "age", 0.1f },
             { "space_size", 0.6f }, { "space_decay", 0.55f }, { "space_mix", 0.3f },
@@ -175,7 +175,7 @@ inline const std::vector<FactoryPreset>& factoryPresets()
         // echoes stay in time with the host no matter the tempo.
         { "Synced Chapel", {
             { "voices", 4.0f }, { "detune", 10.0f }, { "spread", 0.7f }, { "wave", 0.2f },
-            { "cutoff", 1800.0f }, { "resonance", 0.2f }, { "drive", 0.0f },
+            { "cutoff_pos", 65.1f /* 1800 Hz */ }, { "resonance", 0.2f }, { "drive", 0.0f },
             { "drift_rate", 0.08f }, { "drift_depth", 0.3f }, { "drift_chaos", 0.15f },
             { "noise", 0.03f }, { "grain", 0.0f }, { "age", 0.0f },
             { "space_size", 0.8f }, { "space_decay", 0.75f }, { "space_mix", 0.45f },
@@ -189,7 +189,7 @@ inline const std::vector<FactoryPreset>& factoryPresets()
         // room size - lean into a held note and it blooms outward.
         { "Breath Control", {
             { "voices", 3.0f }, { "detune", 10.0f }, { "spread", 0.5f }, { "wave", 0.3f },
-            { "cutoff", 1500.0f }, { "resonance", 0.25f }, { "drive", 0.05f },
+            { "cutoff_pos", 62.5f /* 1500 Hz */ }, { "resonance", 0.25f }, { "drive", 0.05f },
             { "drift_rate", 0.1f }, { "drift_depth", 0.25f }, { "drift_chaos", 0.15f },
             { "noise", 0.05f }, { "grain", 0.0f }, { "age", 0.05f },
             { "space_size", 0.4f }, { "space_decay", 0.5f }, { "space_mix", 0.2f },
@@ -205,7 +205,7 @@ inline const std::vector<FactoryPreset>& factoryPresets()
         // "push the wheel, the filter growls" gesture.
         { "Wax Wheel", {
             { "voices", 3.0f }, { "detune", 15.0f }, { "spread", 0.5f }, { "wave", 0.5f },
-            { "cutoff", 1200.0f }, { "resonance", 0.15f }, { "drive", 0.0f },
+            { "cutoff_pos", 59.3f /* 1200 Hz */ }, { "resonance", 0.15f }, { "drive", 0.0f },
             { "drift_rate", 0.12f }, { "drift_depth", 0.2f }, { "drift_chaos", 0.2f },
             { "noise", 0.05f }, { "grain", 0.1f }, { "age", 0.1f },
             { "space_size", 0.5f }, { "space_decay", 0.5f }, { "space_mix", 0.25f },
@@ -222,7 +222,7 @@ inline const std::vector<FactoryPreset>& factoryPresets()
         // being pushed.
         { "Heavy Hands", {
             { "voices", 3.0f }, { "detune", 14.0f }, { "spread", 0.4f }, { "wave", 0.55f },
-            { "cutoff", 900.0f }, { "resonance", 0.3f }, { "drive", 0.0f },
+            { "cutoff_pos", 55.1f /* 900 Hz */ }, { "resonance", 0.3f }, { "drive", 0.0f },
             { "drift_rate", 0.1f }, { "drift_depth", 0.2f }, { "drift_chaos", 0.25f },
             { "noise", 0.05f }, { "grain", 0.1f }, { "age", 0.05f },
             { "space_size", 0.45f }, { "space_decay", 0.5f }, { "space_mix", 0.25f },
@@ -238,7 +238,7 @@ inline const std::vector<FactoryPreset>& factoryPresets()
         // bend - dive the wheel and the whole sound stretches with it.
         { "Rubber Horizon", {
             { "voices", 3.0f }, { "detune", 10.0f }, { "spread", 0.6f }, { "wave", 0.25f },
-            { "cutoff", 2000.0f }, { "resonance", 0.2f }, { "drive", 0.0f },
+            { "cutoff_pos", 66.7f /* 2000 Hz */ }, { "resonance", 0.2f }, { "drive", 0.0f },
             { "drift_rate", 0.09f }, { "drift_depth", 0.25f }, { "drift_chaos", 0.15f },
             { "noise", 0.03f }, { "grain", 0.0f }, { "age", 0.0f },
             { "space_size", 0.6f }, { "space_decay", 0.6f }, { "space_mix", 0.3f },
@@ -259,7 +259,7 @@ inline const std::vector<FactoryPreset>& factoryPresets()
             { "voices", 2.0f }, { "detune", 8.0f }, { "spread", 0.5f }, { "wave", 0.1f },
             { "osc_c_octave", -1.0f }, { "osc_c_semi", 7.0f }, { "osc_c_wave", 0.0f },
             { "osc_b_level", 0.0f },
-            { "cutoff", 2200.0f }, { "resonance", 0.2f }, { "drive", 0.05f },
+            { "cutoff_pos", 68.0f /* 2200 Hz */ }, { "resonance", 0.2f }, { "drive", 0.05f },
             { "drift_rate", 0.07f }, { "drift_depth", 0.2f }, { "drift_chaos", 0.15f },
             { "noise", 0.02f }, { "grain", 0.0f }, { "age", 0.0f },
             { "space_size", 0.55f }, { "space_decay", 0.55f }, { "space_mix", 0.3f },
@@ -279,7 +279,7 @@ inline const std::vector<FactoryPreset>& factoryPresets()
             { "osc_b_octave", 1.0f }, { "osc_b_wave", 0.15f },
             { "osc_c_octave", 1.0f }, { "osc_c_semi", 7.0f }, { "osc_c_wave", 0.15f },
             { "osc_b_level", 0.5f }, { "osc_c_level", 0.5f },
-            { "cutoff", 3200.0f }, { "resonance", 0.15f }, { "drive", 0.0f },
+            { "cutoff_pos", 73.5f /* 3200 Hz */ }, { "resonance", 0.15f }, { "drive", 0.0f },
             { "drift_rate", 0.05f }, { "drift_depth", 0.15f }, { "drift_chaos", 0.1f },
             { "noise", 0.02f }, { "grain", 0.0f }, { "age", 0.0f },
             { "space_size", 0.7f }, { "space_decay", 0.65f }, { "space_mix", 0.4f },
@@ -297,7 +297,7 @@ inline const std::vector<FactoryPreset>& factoryPresets()
         { "Feedback Drone", {
             { "voices", 2.0f }, { "detune", 10.0f }, { "spread", 0.5f }, { "wave", 0.2f },
             { "osc_b_semi", 5.0f }, { "osc_c_semi", -5.0f },
-            { "cutoff", 1600.0f }, { "resonance", 0.35f }, { "drive", 0.1f },
+            { "cutoff_pos", 63.4f /* 1600 Hz */ }, { "resonance", 0.35f }, { "drive", 0.1f },
             { "drift_rate", 0.09f }, { "drift_depth", 0.2f }, { "drift_chaos", 0.25f },
             { "noise", 0.03f }, { "grain", 0.05f }, { "age", 0.05f },
             { "space_size", 0.5f }, { "space_decay", 0.5f }, { "space_mix", 0.28f },
@@ -317,7 +317,7 @@ inline const std::vector<FactoryPreset>& factoryPresets()
             { "osc_b_octave", -1.0f }, { "osc_b_wave", 0.1f },
             { "osc_c_semi", 7.0f },
             { "osc_b_level", 0.7f },
-            { "cutoff", 900.0f }, { "resonance", 0.25f }, { "drive", 0.05f },
+            { "cutoff_pos", 55.1f /* 900 Hz */ }, { "resonance", 0.25f }, { "drive", 0.05f },
             { "drift_rate", 0.08f }, { "drift_depth", 0.2f }, { "drift_chaos", 0.15f },
             { "noise", 0.03f }, { "grain", 0.0f }, { "age", 0.05f },
             { "space_size", 0.55f }, { "space_decay", 0.55f }, { "space_mix", 0.3f },

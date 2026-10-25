@@ -139,8 +139,16 @@ protected:
         parameter.ranges.max = info.max;
         parameter.ranges.def = info.def;
 
-        if (info.shape == ParamShape::Logarithmic)
-            parameter.hints |= kParameterIsLogarithmic;
+        // log-curved parameters reach the host as a 0..100 % position (see
+        // paramToHost() in Params.hpp), so its automation sweeps them evenly
+        if (isHostPosition(index))
+        {
+            parameter.unit = "%";
+            parameter.ranges.min = 0.0f;
+            parameter.ranges.max = 100.0f;
+            parameter.ranges.def = paramToHost(index, info.def);
+        }
+
         if (info.shape == ParamShape::Boolean)
             parameter.hints |= kParameterIsBoolean | kParameterIsInteger;
         if (index == kParamVoices || index == kParamOscBOctave || index == kParamOscBSemi
@@ -152,6 +160,12 @@ protected:
     // Internal data
 
     float getParameterValue(uint32_t index) const override
+    {
+        return paramToHost(index, getEngineeringValue(index));
+    }
+
+    // a parameter in real units (Hz, s, ...), as the DSP sees it
+    float getEngineeringValue(uint32_t index) const
     {
         if (index >= kParamPatchFirst && index < kParamPatchFirst + kNumSources * kNumDests)
         {
@@ -186,7 +200,7 @@ protected:
         case kParamFmBtoC:      return fVoiceParams.fmBtoC;
         case kParamFmCtoA:      return fVoiceParams.fmCtoA;
         case kParamFmCtoB:      return fVoiceParams.fmCtoB;
-        case kParamCutoff:      return fCutoffHz;
+        case kParamCutoff:      return fCutoffPercent;
         case kParamResonance:   return fResonance;
         case kParamDrive:       return fDrive;
         case kParamDriftRate:   return fDriftRate;
@@ -229,6 +243,8 @@ protected:
 
     void setParameterValue(uint32_t index, float value) override
     {
+        value = paramFromHost(index, value); // host position -> real units (Params.hpp)
+
         if (index >= kParamPatchFirst && index < kParamPatchFirst + kNumSources * kNumDests)
         {
             const uint32_t offset = index - kParamPatchFirst;
@@ -259,7 +275,7 @@ protected:
         case kParamFmBtoC:     fVoiceParams.fmBtoC = value; break;
         case kParamFmCtoA:     fVoiceParams.fmCtoA = value; break;
         case kParamFmCtoB:     fVoiceParams.fmCtoB = value; break;
-        case kParamCutoff:     fCutoffHz = value; break;
+        case kParamCutoff:     fCutoffPercent = value; fCutoffHz = cutoffPercentToHz(value); break;
         case kParamResonance:  fResonance = value; break;
         case kParamDrive:      fDrive = value; break;
         case kParamDriftRate:  fDriftRate = value; fDrift.setRate(value); break;
@@ -659,6 +675,7 @@ private:
     uint32_t fStealCursor = 0;
     double fSampleRate = 44100.0;
 
+    float fCutoffPercent = cutoffHzToPercent(1800.0f); // the parameter (CutoffMath.hpp)
     float fCutoffHz = 1800.0f;
     float fResonance = 0.2f;
     float fDrive = 0.0f;

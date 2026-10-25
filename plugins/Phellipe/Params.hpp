@@ -5,6 +5,8 @@
 
 #pragma once
 
+#include <algorithm>
+#include <cmath>
 #include <cstdint>
 
 namespace phellipe {
@@ -349,7 +351,7 @@ inline const ParamInfo& getParamInfo(uint32_t index) noexcept
         { "FM B->C",    "fm_b_to_c",   "",    0.0f,     1.0f,    0.0f,   ParamShape::Linear },
         { "FM C->A",    "fm_c_to_a",   "",    0.0f,     1.0f,    0.0f,   ParamShape::Linear },
         { "FM C->B",    "fm_c_to_b",   "",    0.0f,     1.0f,    0.0f,   ParamShape::Linear },
-        { "Cutoff",     "cutoff",      "Hz", 20.0f, 20000.0f, 1800.0f,   ParamShape::Logarithmic },
+        { "Cutoff",     "cutoff_pos",  "%",  0.0f,    100.0f,  65.14f, ParamShape::Linear }, // position 20 Hz..20 kHz (1800 Hz), see CutoffMath.hpp
         { "Reso",       "resonance",   "",   0.0f,     1.0f,     0.2f,   ParamShape::Linear },
         { "Drive",      "drive",       "",   0.0f,     1.0f,     0.0f,   ParamShape::Linear },
         { "Rate",       "drift_rate",  "Hz", 0.01f,    2.0f,    0.15f,   ParamShape::Logarithmic },
@@ -611,6 +613,37 @@ inline const ParamInfo& getParamInfo(uint32_t index) noexcept
         { "Aftertouch->FM C>B",    "patch_aftertouch_fmctob",      "", 0.0f, 1.0f, 0.0f, ParamShape::Boolean },
     };
     return table[index];
+}
+
+// Hosts automate a parameter's range linearly (VST3 normalisation, CLAP
+// plain values; DPF passes the logarithmic hint on to LV2 only), which crams
+// most of a 20 Hz..20 kHz or 1 ms..5 s range into the first few percent of an
+// automation lane. So every Logarithmic parameter is exposed to the host as
+// a 0..100 % position along its log curve (for a cutoff, ~10 % per octave).
+// The DSP, the UI and preset files keep working in real units: the plugin
+// and the UI convert only where values cross to and from the host.
+inline bool isHostPosition(uint32_t index) noexcept
+{
+    return index < kParamCount && getParamInfo(index).shape == ParamShape::Logarithmic;
+}
+
+inline float paramToHost(uint32_t index, float value) noexcept
+{
+    if (!isHostPosition(index))
+        return value;
+    const ParamInfo& info = getParamInfo(index);
+    const float lo = std::max(info.min, 1e-6f);
+    const float v = std::clamp(value, lo, info.max);
+    return 100.0f * std::log(v / lo) / std::log(info.max / lo);
+}
+
+inline float paramFromHost(uint32_t index, float value) noexcept
+{
+    if (!isHostPosition(index))
+        return value;
+    const ParamInfo& info = getParamInfo(index);
+    const float lo = std::max(info.min, 1e-6f);
+    return lo * std::pow(info.max / lo, std::clamp(value, 0.0f, 100.0f) * 0.01f);
 }
 
 } // namespace phellipe

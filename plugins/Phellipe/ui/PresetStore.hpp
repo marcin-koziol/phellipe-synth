@@ -24,6 +24,7 @@
 #pragma once
 
 #include "../Params.hpp"
+#include "../dsp/CutoffMath.hpp"
 
 #include <algorithm>
 #include <cstdio>
@@ -172,6 +173,14 @@ inline bool loadPreset(const std::string& name, float* values)
         const std::string val = line.substr(eq + 1);
         if (key == "name")
             continue;
+
+        // presets saved before CUTOFF became a 0..100 % position stored Hz
+        // under the old symbol - convert, so they keep sounding the same
+        if (key == "cutoff")
+        {
+            values[kParamCutoff] = cutoffHzToPercent(std::strtof(val.c_str(), nullptr));
+            continue;
+        }
 
         for (uint32_t i = 0; i < kParamCount; ++i)
         {

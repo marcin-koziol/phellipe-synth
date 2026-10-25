@@ -23,6 +23,7 @@
 #include <algorithm>
 
 #include "../Params.hpp"
+#include "../dsp/CutoffMath.hpp"
 #include "VoronoiGeometry.hpp"
 #include "PortraitAsset.hpp"
 
@@ -497,7 +498,11 @@ inline void formatParamValue(uint32_t index, float value, char* out, size_t outS
 
     const ParamInfo& info = getParamInfo(index);
 
-    if (std::strcmp(info.unit, "Hz") == 0)
+    // the parameter is a 0..100 % position (see CutoffMath.hpp); show Hz
+    if (index == kParamCutoff)
+        value = cutoffPercentToHz(value);
+
+    if (index == kParamCutoff || std::strcmp(info.unit, "Hz") == 0)
     {
         if (value >= 1000.0f)
             std::snprintf(out, outSize, "%.2fk", value / 1000.0);
